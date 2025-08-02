@@ -106,11 +106,13 @@ class PlanSoMain:
         self._config.find_element.selector = self._config.find_element.selector.replace(
             "FIELD_STRING", field_name
         )
+        # Set rows per page?
 
         nr_pages = self.get_nr_pages()
-        print("nr_pages",nr_pages)
-        for page in range(nr_pages):
+        print("nr_pages", nr_pages)
+        for page in range(1,nr_pages+1):
             print("Page", page)
+
             # Alle Zeilen der Tabelle holen (z.B. tbody > tr)
             rows = self._selenium_client.find_elements(
                 by=self._config.selenium.rows_of_table.locator_strategie,
@@ -130,8 +132,28 @@ class PlanSoMain:
                         selector=self._config.find_element.selector_id,
                         element=row,
                     ).text
-                    print("Zeile", idx, "ID", id_nr, "plate", numberplate)
-                    break
+                    print(
+                        "Zeile",
+                        idx,
+                        "ID",
+                        id_nr,
+                        "plate",
+                        numberplate,
+                        "page_size",
+                        self.get_page_size(),
+                        "page",
+                        page,
+                    )
+                    return {
+                        "Zeile": idx,
+                        "ID": id_nr,
+                        "plate": numberplate,
+                        "page_size": self.get_page_size(),
+                        "page": page,
+                    }
+            if page + 1 == nr_pages:
+                break
+            self.set_page(page + 1)
 
     def open_navigation(self):
         try:
@@ -173,15 +195,31 @@ class PlanSoMain:
             self._config.selenium.next_page_button.selector,
         )
         self._wait_for_table()
-    
+
     def get_nr_pages(self) -> int:
-        return int(self._selenium_client.find_element(
-            by=self._config.selenium.nr_pages.locator_strategie,
-            selector=self._config.selenium.nr_pages.selector,
-        ).text)
+        return int(
+            self._selenium_client.find_element(
+                by=self._config.selenium.nr_pages.locator_strategie,
+                selector=self._config.selenium.nr_pages.selector,
+            ).text
+        )
 
     def set_page(self, nr):
-        
+        self._selenium_client.type_text(
+            by=self._config.selenium.set_page.locator_strategie,
+            selector=self._config.selenium.set_page.selector,
+            text=str(nr),
+            send_return=True,
+        )
+        self._wait_for_table()
+
+    def get_page_size(self):
+        return int(
+            self._selenium_client.get_select_element(
+                by=self._config.selenium.page_size_selector.locator_strategie,
+                selector=self._config.selenium.page_size_selector.selector,
+            )
+        )
 
     def set_page_size(self, size: str):
         self._selenium_client.set_select_element(

@@ -53,6 +53,9 @@ jvg:
     nr_pages:
       selector: "sp_1_pbaymis_TABLE_ID"
       locator_strategie: "id"
+    set_page:
+      selector: "input.ui-pg-input"
+      locator_strategie: "css"
 
   table_id: "baymis_TABLE_ID"
   find_element:

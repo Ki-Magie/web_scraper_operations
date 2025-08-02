@@ -2,6 +2,7 @@ import logging
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -31,7 +32,10 @@ class SeleniumClient:
             chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--no-sandbox")
         prefs = {
-            "profile.default_content_setting_values.geolocation": 2  # Blockiert Standortfreigabe
+            "profile.default_content_setting_values.geolocation": 2,  # Blockiert Standortfreigabe
+            "profile.default_content_setting_values.media_stream_camera": 2,  # 1 = zulassen, 2 = blockieren
+            "profile.default_content_setting_values.media_stream_mic": 2,
+            "profile.default_content_setting_values.geolocation": 2
         }
         chrome_options.add_experimental_option("prefs", prefs)
 
@@ -41,12 +45,14 @@ class SeleniumClient:
     def open_url(self, url):
         self.driver.get(url)
 
-    def type_text(self, by, selector, text):
+    def type_text(self, by, selector, text, send_return=False):
         field = self.wait.until(
             EC.presence_of_element_located((STRATEGY_MAP[by], selector))
         )
         field.clear()
         field.send_keys(text)
+        if send_return:
+            field.send_keys(Keys.RETURN)
 
     def click(self, by, selector):
         button = self.wait.until(
@@ -62,6 +68,11 @@ class SeleniumClient:
         select = Select(select_element)
         # Wert einstellen (muss String sein), z.B. "100"
         select.select_by_value(value)
+    
+    def get_select_element(self, by, selector):
+        select_elem = self.driver.find_element(STRATEGY_MAP[by], selector)
+        select = Select(select_elem)
+        return select.first_selected_option.get_attribute("value")
 
     def wait_for_element(self, by, selector):
         self.wait.until(EC.presence_of_element_located((STRATEGY_MAP[by], selector)))
@@ -81,6 +92,9 @@ class SeleniumClient:
         if element is None:
             return self.driver.find_element(STRATEGY_MAP[by], selector)
         return element.find_element(STRATEGY_MAP[by], selector)
+    
+    def send_return(self):
+        self.driver.send(Keys.RETURN)
 
 
     def quit(self):
