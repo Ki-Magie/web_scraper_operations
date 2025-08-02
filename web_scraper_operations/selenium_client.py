@@ -35,7 +35,6 @@ class SeleniumClient:
             "profile.default_content_setting_values.geolocation": 2,  # Blockiert Standortfreigabe
             "profile.default_content_setting_values.media_stream_camera": 2,  # 1 = zulassen, 2 = blockieren
             "profile.default_content_setting_values.media_stream_mic": 2,
-            "profile.default_content_setting_values.geolocation": 2
         }
         chrome_options.add_experimental_option("prefs", prefs)
 
@@ -68,7 +67,7 @@ class SeleniumClient:
         select = Select(select_element)
         # Wert einstellen (muss String sein), z.B. "100"
         select.select_by_value(value)
-    
+
     def get_select_element(self, by, selector):
         select_elem = self.driver.find_element(STRATEGY_MAP[by], selector)
         select = Select(select_elem)
@@ -85,17 +84,30 @@ class SeleniumClient:
             EC.invisibility_of_element_located((STRATEGY_MAP[by], selector))
         )
 
-    def find_elements(self, by, selector):
+    def wait_until_not(self, by, selector):
+        self.wait.until_not(
+            EC.presence_of_element_located((STRATEGY_MAP[by], selector))
+        )
+
+    def find_elements(self, by, selector, element=None):
+        if element is not None:
+            return element.find_elements(STRATEGY_MAP[by], selector)
         return self.driver.find_elements(STRATEGY_MAP[by], selector)
 
     def find_element(self, by, selector, element=None):
         if element is None:
             return self.driver.find_element(STRATEGY_MAP[by], selector)
         return element.find_element(STRATEGY_MAP[by], selector)
-    
+
+    def upload_file(self, element, by, selector, path):
+        file_input = WebDriverWait(element, 10).until(
+            EC.presence_of_element_located((STRATEGY_MAP[by], selector))
+        )
+        file_input.send_keys(path)
+        self.wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "blockUI")))
+
     def send_return(self):
         self.driver.send(Keys.RETURN)
-
 
     def quit(self):
         self.driver.quit()

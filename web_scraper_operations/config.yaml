@@ -56,14 +56,33 @@ jvg:
     set_page:
       selector: "input.ui-pg-input"
       locator_strategie: "css"
+    field_count:
+      selector: "td"
+      locator_strategie: "tag"
+    upload_cell_prepare:
+      selector: ".//td"
+      locator_strategie: "xpath"
+    upload_cell:
+      selector: ".//input[@type='file']"
+      locator_strategie: "xpath"
+    upload_dialog_close:
+      selector: "//button[.//span[contains(@class, 'fa-times-circle')] and .//span[text()='Schließen']]"
+      locator_strategie: "xpath"
+    status_upload:
+      selector: "mainForm:execution-statusDialog"
+      locator_strategie: "id"
+
 
   table_id: "baymis_TABLE_ID"
   find_element:
     selector: './/td[@aria-describedby="baymis_TABLE_ID_FIELD_STRING"]'
     selector_id: './/td[@aria-describedby="baymis_TABLE_ID_ID"]'
     locator_strategie: "xpath"
-    
-  table_fileds:
+  file_upload:
+    selector: "9999_Dokumente"
+    locator_strategie: "id"
+
+  table_fields:
     subgrid: "baymis_TABLE_ID_subgrid"
     ID: "baymis_TABLE_ID_ID"
     customer_category: "baymis_TABLE_ID_customer_category"

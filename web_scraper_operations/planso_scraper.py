@@ -20,7 +20,13 @@ planso_password = "m0n1t0r"
 
 class PlanSoMain:
     """
-    Diese Klasse kombiniert requests und selenium scraping um die Planso datenbank zu bearbeiten
+    Diese Klasse verwenden selenium scraping um die Planso datenbank zu bearbeiten.
+    planSo muss erzeugt werden und dann können einzelne flows (z.b. planso_upload_flow)
+    mit entsprechenden args gestartet werden.
+
+    in der config sind viele planso speziefische informationen gespeichert. falls sich etwas
+    an PlanSo ändert oder wir das ganze für einen anderen kunden verwenden wollen müssen wir
+    die config anpassen.
     """
 
     def __init__(
@@ -44,14 +50,19 @@ class PlanSoMain:
 
         # print(self._config)
 
-    def planso_flow(self):
+    def planso_upload_flow(self, path="/Users/paul/Downloads/weitere_test_datei.pdf"):
         self._selenium_client.open_url(url=self._config.base_url)
         self.login()
         self.open_navigation()
         self.open_table()
-        time.sleep(10)
-        self.find_element()
-        # time.sleep(20)
+        time.sleep(0.5)
+        row_info = self.find_element()
+        self.upload_file(path, row_info)
+        self._selenium_client.click(
+            by=self._config.selenium.upload_dialog_close.locator_strategie,
+            selector=self._config.selenium.upload_dialog_close.selector,
+        )
+        time.sleep(0.5)
         self.logout()
 
     def _load_cofig(self, config: str, client: str):
@@ -98,6 +109,55 @@ class PlanSoMain:
     def logout(self):
         self._selenium_client.open_url(url=self._config.logout_url)
 
+    def upload_file(self, path, row_info, target_field="Dokumente"):
+        self.set_page(row_info["page"])
+        rows = self._selenium_client.find_elements(
+            by=self._config.selenium.rows_of_table.locator_strategie,
+            selector=self._config.selenium.rows_of_table.selector,
+        )
+        target_field_idx = -1
+        for idx, row in enumerate(rows):
+            if idx == 1 and target_field_idx == -1:
+                tds = self._selenium_client.find_elements(
+                    by=self._config.selenium.field_count.locator_strategie,
+                    selector=self._config.selenium.field_count.selector,
+                    element=row,
+                )
+                for idx, td in enumerate(tds):
+                    td_id = td.get_attribute("aria-describedby")
+
+                    if td_id == getattr(self._config.table_fields, target_field):
+                        target_field_idx = idx + 1
+                        print(target_field, "hat den index", target_field_idx)
+            if row_info["plate"] in row.text:
+                upload_cell = row.find_element(
+                    self._config.selenium.upload_cell_prepare.locator_strategie,
+                    self._config.selenium.upload_cell_prepare.selector
+                    + f"[{target_field_idx}]",
+                )
+                upload_cell.click()
+                time.sleep(0.5)
+                break
+        # nach klick nochmal alles holen
+        rows = self._selenium_client.find_elements(
+            by=self._config.selenium.rows_of_table.locator_strategie,
+            selector=self._config.selenium.rows_of_table.selector,
+        )
+        for idx, row in enumerate(rows):
+            if row_info["plate"] in row.text:
+                self._selenium_client.upload_file(
+                    element=row,
+                    by=self._config.selenium.upload_cell.locator_strategie,
+                    selector=self._config.selenium.upload_cell.selector,
+                    path=path,
+                )
+                self._selenium_client.wait_until_not(
+                    by=self._config.selenium.status_upload.locator_strategie,
+                    selector=self._config.selenium.status_upload.selector,
+                )
+                return True
+        return False
+
     def find_element(
         self,
         field_name: str = "Kennzeichen",
@@ -109,18 +169,25 @@ class PlanSoMain:
         # Set rows per page?
 
         nr_pages = self.get_nr_pages()
-        print("nr_pages", nr_pages)
-        for page in range(1,nr_pages+1):
-            print("Page", page)
-
+        field_idx = -1
+        for page in range(1, nr_pages + 1):
             # Alle Zeilen der Tabelle holen (z.B. tbody > tr)
             rows = self._selenium_client.find_elements(
                 by=self._config.selenium.rows_of_table.locator_strategie,
                 selector=self._config.selenium.rows_of_table.selector,
             )
-
-            print("länge rows", len(rows))
             for idx, row in enumerate(rows):
+                if idx == 1 and field_idx == -1:
+                    tds = self._selenium_client.find_elements(
+                        by=self._config.selenium.field_count.locator_strategie,
+                        selector=self._config.selenium.field_count.selector,
+                        element=row,
+                    )
+                    for idx, td in enumerate(tds):
+                        td_id = td.get_attribute("aria-describedby")
+
+                        if td_id == getattr(self._config.table_fields, field_name):
+                            field_idx = idx
                 if search_string in row.text:
                     numberplate = self._selenium_client.find_element(
                         by=self._config.find_element.locator_strategie,
@@ -132,22 +199,11 @@ class PlanSoMain:
                         selector=self._config.find_element.selector_id,
                         element=row,
                     ).text
-                    print(
-                        "Zeile",
-                        idx,
-                        "ID",
-                        id_nr,
-                        "plate",
-                        numberplate,
-                        "page_size",
-                        self.get_page_size(),
-                        "page",
-                        page,
-                    )
                     return {
                         "Zeile": idx,
                         "ID": id_nr,
                         "plate": numberplate,
+                        "field_idx": field_idx,
                         "page_size": self.get_page_size(),
                         "page": page,
                     }
@@ -228,6 +284,9 @@ class PlanSoMain:
             size,
         )
         self._wait_for_table()
+
+    def open_upload_dialog(self):
+        self._selenium_client.click
 
     def _wait_for_table(self):
         self._selenium_client.wait_for_visibility(
