@@ -21,8 +21,8 @@ class PlanSoMain:
         self,
         username: str,
         password: str,
-        table: str = "25704",
-        table_name: str = "Auftragsplanung",
+        table: str,
+        table_name: str,
         config: str = "config.yaml",
         client: str = "jvg",
     ):

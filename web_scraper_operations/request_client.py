@@ -4,6 +4,7 @@ import requests
 # Logging wird im Docker main (app.py) definiert
 logger = logging.getLogger(__name__)
 
+
 class RequestClient:
 
     def __init__(self):
