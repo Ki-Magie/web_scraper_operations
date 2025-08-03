@@ -1,3 +1,4 @@
+import os
 import logging
 import time
 from types import SimpleNamespace
@@ -23,12 +24,14 @@ class PlanSoMain:
         password: str,
         table: str,
         table_name: str,
-        config: str = "config.yaml",
+        config: str = None,
         client: str = "jvg",
     ):
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
         )
+        if config is None:
+            config = self._get_config_path()
 
         self._load_cofig(config, client)
         self._config = self._replace_in_dict(self._config, "TABLE_ID", table)
@@ -341,3 +344,7 @@ class PlanSoMain:
         elif isinstance(d, list):
             return [self._dict_to_namespace(i) for i in d]
         return d
+
+    def _get_config_path(self):
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(script_dir, "config.yaml")
