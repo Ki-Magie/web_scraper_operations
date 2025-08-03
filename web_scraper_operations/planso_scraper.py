@@ -3,7 +3,7 @@ import time
 from types import SimpleNamespace
 import yaml
 
-from selenium_client import SeleniumClient
+from .selenium_client import SeleniumClient
 
 # Logging-Konfiguration (wird extern in app.py gesetzt)
 logger = logging.getLogger(__name__)
