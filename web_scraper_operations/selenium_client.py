@@ -30,6 +30,7 @@ class SeleniumClient:
         if headless:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--no-sandbox")
         prefs = {
             "profile.default_content_setting_values.geolocation": 2,

@@ -35,7 +35,7 @@ class PlanSoMain:
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
         self._config = self._dict_to_namespace(self._config)
 
-        self._selenium_client = SeleniumClient()
+        self._selenium_client = SeleniumClient(headless=True)
 
         # Login-Daten setzen (aus Sicherheitsgründen nicht loggen!)
         self._config.login_payload.system_login_username = username
