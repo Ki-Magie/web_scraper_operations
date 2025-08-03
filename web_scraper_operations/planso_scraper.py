@@ -44,7 +44,9 @@ class PlanSoMain:
         self._config.login_payload.system_login_username = username
         self._config.login_payload.system_login_password = password
 
-    def planso_upload_flow(self, field_name: str, search_string: str, path: str):
+    def planso_upload_flow(
+        self, field_name: str, search_field_name: str, search_string: str, path: str
+    ):
         """
         Vollständiger Ablauf für den Datei-Upload: Login, Navigation, Dateiupload, Logout.
         """
@@ -57,7 +59,7 @@ class PlanSoMain:
         time.sleep(0.5)
 
         logger.debug("Suche Zielzeile für den Upload...")
-        row_info = self.find_element(field_name, search_string)
+        row_info = self.find_element(search_field_name, search_string)
 
         logger.debug("Starte Datei-Upload...")
         self.upload_file(path, row_info, field_name)
