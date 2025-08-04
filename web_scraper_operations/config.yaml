@@ -71,6 +71,9 @@ jvg:
     status_upload:
       selector: "mainForm:execution-statusDialog"
       locator_strategie: "id"
+    wait_for_upload:
+      selector: "ui-pnotify-text"
+      locator_strategie: "class"
 
 
   table_id: "baymis_TABLE_ID"

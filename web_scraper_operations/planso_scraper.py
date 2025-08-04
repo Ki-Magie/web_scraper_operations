@@ -63,8 +63,13 @@ class PlanSoMain:
 
         logger.debug("Starte Datei-Upload...")
         self.upload_file(path, row_info, field_name)
+        self._selenium_client.wait_for_invisibility(
+            by=self._config.selenium.wait_for_upload.locator_strategie,
+            selector=self._config.selenium.wait_for_upload.selector
+        )
 
         logger.debug("Schließe Upload-Dialog...")
+
         self._selenium_client.click(
             by=self._config.selenium.upload_dialog_close.locator_strategie,
             selector=self._config.selenium.upload_dialog_close.selector,
