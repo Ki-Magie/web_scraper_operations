@@ -61,11 +61,14 @@ class PlanSoMain:
         logger.debug("Suche Zielzeile für den Upload...")
         row_info = self.find_element(search_field_name, search_string)
 
+        if row_info is None:
+            return {"message": f"no {search_string} in {search_field_name}"}
+
         logger.debug("Starte Datei-Upload...")
-        self.upload_file(path, row_info, field_name)
+        success = self.upload_file(path, row_info, field_name)
         self._selenium_client.wait_for_invisibility(
             by=self._config.selenium.wait_for_upload.locator_strategie,
-            selector=self._config.selenium.wait_for_upload.selector
+            selector=self._config.selenium.wait_for_upload.selector,
         )
 
         logger.debug("Schließe Upload-Dialog...")
@@ -78,7 +81,10 @@ class PlanSoMain:
         self.logout()
 
         logger.info("Upload-Flow abgeschlossen.")
-        return True
+        if success:
+            return {"message": f"uploaded"}
+        else:
+            return {"message": f"not uploaded"}
 
     def _load_cofig(self, config: str, client: str):
         logger.debug("Lade Konfigurationsdatei: %s", config)
