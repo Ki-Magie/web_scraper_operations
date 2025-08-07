@@ -222,6 +222,12 @@ class PlanSoMain:
                             field_idx = i
 
                 if search_string in row.text:
+                    logger.debug(
+                        "'%s' wurde auf seite '%s' in Zeilenindex '%s' gefunden.",
+                        search_string,
+                        page,
+                        idx,
+                    )
                     numberplate = self._selenium_client.find_element(
                         by=self._config.find_element.locator_strategie,
                         selector=self._config.find_element.selector,
@@ -294,7 +300,7 @@ class PlanSoMain:
         return pages
 
     def set_page(self, nr):
-        logger.debug("Setze Seite auf: %d", nr)
+        logger.info("Setze Seite auf: %d", nr)
         self._selenium_client.type_text(
             by=self._config.selenium.set_page.locator_strategie,
             selector=self._config.selenium.set_page.selector,
@@ -302,6 +308,7 @@ class PlanSoMain:
             send_return=True,
         )
         self._wait_for_table()
+        time.sleep(1)
 
     def get_page_size(self):
         size = int(

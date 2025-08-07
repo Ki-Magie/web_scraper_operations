@@ -27,6 +27,8 @@ class SeleniumClient:
         logger.info("Initialisiere SeleniumClient (headless=%s)", headless)
         chrome_options = Options()
 
+        self._webdriver_wait = 30 # seconds unil timeout
+
         if headless:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
@@ -40,7 +42,9 @@ class SeleniumClient:
         chrome_options.add_experimental_option("prefs", prefs)
 
         self.driver = webdriver.Chrome(service=Service(), options=chrome_options)
-        self.wait = WebDriverWait(self.driver, 10)
+        self.driver.set_page_load_timeout(self._webdriver_wait)
+        self.driver.set_script_timeout(self._webdriver_wait)
+        self.wait = WebDriverWait(self.driver, self._webdriver_wait)
         logger.debug("Selenium WebDriver erfolgreich gestartet.")
 
     def open_url(self, url):
@@ -114,7 +118,7 @@ class SeleniumClient:
 
     def upload_file(self, element, by, selector, path):
         logger.info("Lade Datei hoch: %s", path)
-        file_input = WebDriverWait(element, 10).until(
+        file_input = WebDriverWait(element, self._webdriver_wait).until(
             EC.presence_of_element_located((STRATEGY_MAP[by], selector))
         )
         file_input.send_keys(path)
