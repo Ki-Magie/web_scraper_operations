@@ -66,7 +66,7 @@ class PlanSoMain:
 
         logger.debug("Starte Datei-Upload...")
         success = self.upload_file(path, row_info, field_name)
-        logger.debug("return of upload_file '%s%'", success)
+        logger.debug("return of upload_file '%s'", success)
         self._selenium_client.wait_for_invisibility(
             by=self._config.selenium.wait_for_upload.locator_strategie,
             selector=self._config.selenium.wait_for_upload.selector,
