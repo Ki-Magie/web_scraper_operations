@@ -66,6 +66,7 @@ class PlanSoMain:
 
         logger.debug("Starte Datei-Upload...")
         success = self.upload_file(path, row_info, field_name)
+        logger.debug("return of upload_file '%s%'", success)
         self._selenium_client.wait_for_invisibility(
             by=self._config.selenium.wait_for_upload.locator_strategie,
             selector=self._config.selenium.wait_for_upload.selector,
@@ -174,7 +175,6 @@ class PlanSoMain:
             )
             for row in rows:
                 if row_info["plate"] in row.text:
-                    logger.debug("Lade Datei hoch...")
                     self._selenium_client.upload_file(
                         element=row,
                         by=self._config.selenium.upload_cell.locator_strategie,
