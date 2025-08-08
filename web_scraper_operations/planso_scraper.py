@@ -39,7 +39,7 @@ class PlanSoMain:
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
         self._config = self._dict_to_namespace(self._config)
 
-        self._page_size = "100"
+        self._page_size = "1000"
 
         self._selenium_client = SeleniumClient(headless=self._headless_mode)
 
