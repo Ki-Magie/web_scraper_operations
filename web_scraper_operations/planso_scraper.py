@@ -39,6 +39,8 @@ class PlanSoMain:
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
         self._config = self._dict_to_namespace(self._config)
 
+        self._page_size = "100"
+
         self._selenium_client = SeleniumClient(headless=self._headless_mode)
 
         # Login-Daten setzen (aus Sicherheitsgründen nicht loggen!)
@@ -60,6 +62,7 @@ class PlanSoMain:
         time.sleep(0.5)
 
         logger.debug("Suche Zielzeile für den Upload...")
+        self.set_page_size(self._page_size)
         row_info = self.find_element(search_field_name, search_string)
 
         if row_info is None:
