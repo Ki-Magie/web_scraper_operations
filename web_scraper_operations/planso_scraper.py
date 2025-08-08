@@ -62,7 +62,7 @@ class PlanSoMain:
         time.sleep(0.5)
 
         logger.debug("Suche Zielzeile für den Upload...")
-        self.set_page_size(self._page_size)
+        # self.set_page_size(self._page_size)
         row_info = self.find_element(search_field_name, search_string)
 
         if row_info is None:
@@ -235,7 +235,7 @@ class PlanSoMain:
                             field_idx = i
 
                 if search_string in row.text:
-                    logger.debug(
+                    logger.info(
                         "'%s' wurde auf seite '%s' in Zeilenindex '%s' gefunden.",
                         search_string,
                         page,
@@ -316,6 +316,7 @@ class PlanSoMain:
                     selector=self._config.selenium.nr_pages.selector,
                 ).text
                 if text != "":
+                    logging.info("number page: %d", text)
                     return int(text)
                 time.sleep(0.5)
             except:
