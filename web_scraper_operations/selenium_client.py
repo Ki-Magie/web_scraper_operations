@@ -1,11 +1,14 @@
 import logging
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
+
 
 # Logging wird im Docker main (app.py) definiert
 logger = logging.getLogger(__name__)
@@ -27,12 +30,13 @@ class SeleniumClient:
         logger.info("Initialisiere SeleniumClient (headless=%s)", headless)
         chrome_options = Options()
 
-        self._webdriver_wait = 30 # seconds unil timeout
+        self._webdriver_wait = 30  # seconds unil timeout
 
         if headless:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("window-size=1920,1080")
         chrome_options.add_argument("--no-sandbox")
         prefs = {
             "profile.default_content_setting_values.geolocation": 2,
@@ -67,6 +71,17 @@ class SeleniumClient:
             EC.element_to_be_clickable((STRATEGY_MAP[by], selector))
         )
         button.click()
+
+    def safe_click(self, by, selector, timeout=10):
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            try:
+                self.click(by, selector)
+                return
+            except ElementClickInterceptedException:
+                # Etwas blockiert den Klick – kurz warten und nochmal versuchen
+                time.sleep(0.5)
+        raise Exception(f"Konnte Element {selector} nicht klicken – immer blockiert")
 
     def set_select_element(self, by, selector, value: str):
         logger.debug("Setze Select-Element [%s=%s] auf Wert '%s'", by, selector, value)
@@ -115,6 +130,9 @@ class SeleniumClient:
         if element is None:
             return self.driver.find_element(STRATEGY_MAP[by], selector)
         return element.find_element(STRATEGY_MAP[by], selector)
+
+    def execute_script(self, execute_script):
+        self.driver.execute_script(execute_script)
 
     def upload_file(self, element, by, selector, path):
         logger.info("Lade Datei hoch: %s", path)

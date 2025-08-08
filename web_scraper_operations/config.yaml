@@ -51,6 +51,7 @@ jvg:
       selector: '//table[@id="baymis_TABLE_ID"]/tbody/tr'
       locator_strategie: "xpath"
     nr_pages:
+      execute: "return document.getElementById('sp_1_pbaymis_TABLE_ID').innerText;"
       selector: "sp_1_pbaymis_TABLE_ID"
       locator_strategie: "id"
     set_page:
@@ -68,7 +69,10 @@ jvg:
     upload_dialog_close:
       selector: "//button[.//span[contains(@class, 'fa-times-circle')] and .//span[text()='Schließen']]"
       locator_strategie: "xpath"
-    status_upload:
+    upload_dialog_alert:
+      selector: "ui-pnotify-text"
+      locator_strategie: "class"
+    status_upload_uploading:
       selector: "mainForm:execution-statusDialog"
       locator_strategie: "id"
     wait_for_upload:

@@ -30,6 +30,7 @@ class PlanSoMain:
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
         )
+        self._headless_mode = True
         if config is None:
             config = self._get_config_path()
 
@@ -38,7 +39,7 @@ class PlanSoMain:
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
         self._config = self._dict_to_namespace(self._config)
 
-        self._selenium_client = SeleniumClient(headless=True)
+        self._selenium_client = SeleniumClient(headless=self._headless_mode)
 
         # Login-Daten setzen (aus Sicherheitsgründen nicht loggen!)
         self._config.login_payload.system_login_username = username
@@ -62,11 +63,11 @@ class PlanSoMain:
         row_info = self.find_element(search_field_name, search_string)
 
         if row_info is None:
-            return {"message": f"no {search_string} in {search_field_name}"}
+            return {"message": f"{search_string} ist nicht im Feld {search_field_name}"}
 
         logger.debug("Starte Datei-Upload...")
-        success = self.upload_file(path, row_info, field_name)
-        logger.debug("return of upload_file '%s'", success)
+        status = self.upload_file(path, row_info, field_name)
+        logger.info("return of status '%s'", status)
         self._selenium_client.wait_for_invisibility(
             by=self._config.selenium.wait_for_upload.locator_strategie,
             selector=self._config.selenium.wait_for_upload.selector,
@@ -74,7 +75,7 @@ class PlanSoMain:
 
         logger.debug("Schließe Upload-Dialog...")
 
-        self._selenium_client.click(
+        self._selenium_client.safe_click(
             by=self._config.selenium.upload_dialog_close.locator_strategie,
             selector=self._config.selenium.upload_dialog_close.selector,
         )
@@ -82,10 +83,8 @@ class PlanSoMain:
         self.logout()
 
         logger.info("Upload-Flow abgeschlossen.")
-        if success:
-            return {"message": f"uploaded"}
-        else:
-            return {"message": f"not uploaded"}
+
+        return {"message": status}
 
     def _load_cofig(self, config: str, client: str):
         logger.debug("Lade Konfigurationsdatei: %s", config)
@@ -181,15 +180,26 @@ class PlanSoMain:
                         selector=self._config.selenium.upload_cell.selector,
                         path=path,
                     )
+                    # Warten auf das upload status fenster
                     self._selenium_client.wait_until_not(
-                        by=self._config.selenium.status_upload.locator_strategie,
-                        selector=self._config.selenium.status_upload.selector,
+                        by=self._config.selenium.status_upload_uploading.locator_strategie,
+                        selector=self._config.selenium.status_upload_uploading.selector,
                     )
+                    time.sleep(2)
+                    # Warten auf das Warnung fenster "datei existiert bereits"
+                    if self.check_for_alert():
+                        return self.check_overlay_type()
+
+                    self._selenium_client.wait_for_invisibility(
+                        by=self._config.selenium.upload_dialog_alert.locator_strategie,
+                        selector=self._config.selenium.upload_dialog_alert.selector,
+                    )
+
                     logger.info("Datei erfolgreich hochgeladen.")
-                    return True
+                    return "File Upload erfolgreich"
         except Exception as e:
             logger.error("Upload fehlgeschlagen: %s", str(e))
-        return False
+        return "File not uploaded"
 
     def find_element(self, field_name: str, search_string: str):
         logger.info(
@@ -275,7 +285,7 @@ class PlanSoMain:
                 by=self._config.selenium.table_name.locator_strategie,
                 selector=self._config.selenium.table_name.selector,
             )
-            logger.debug("Warte auf Tabelle...")
+            logger.info("Warte auf Tabelle...")
             self._wait_for_table()
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
@@ -290,14 +300,24 @@ class PlanSoMain:
         self._wait_for_table()
 
     def get_nr_pages(self) -> int:
-        pages = int(
-            self._selenium_client.find_element(
-                by=self._config.selenium.nr_pages.locator_strategie,
-                selector=self._config.selenium.nr_pages.selector,
-            ).text
+        timeout = 10
+        self._selenium_client.wait_for_element(
+            self._config.selenium.nr_pages.locator_strategie,
+            self._config.selenium.nr_pages.selector,
         )
-        logger.debug("Anzahl Seiten: %d", pages)
-        return pages
+        end_time = time.time() + timeout
+        while time.time() < end_time:
+            try:
+                text = self._selenium_client.find_element(
+                    by=self._config.selenium.nr_pages.locator_strategie,
+                    selector=self._config.selenium.nr_pages.selector,
+                ).text
+                if text != "":
+                    return int(text)
+                time.sleep(0.5)
+            except:
+                time.sleep(0.5)
+        raise Exception(f"get_nr_page fehlgeschlagen")
 
     def set_page(self, nr):
         logger.info("Setze Seite auf: %d", nr)
@@ -328,6 +348,40 @@ class PlanSoMain:
             size,
         )
         self._wait_for_table()
+
+    def check_for_alert(self):
+        try:
+            self._selenium_client.wait_for_visibility(
+                self._config.selenium.upload_dialog_alert.locator_strategie,
+                self._config.selenium.upload_dialog_alert.selector,
+            )
+            return True
+        except:
+            return False
+
+    def check_overlay_type(self):
+        try:
+            overlay_elem = self._selenium_client.find_element(
+                self._config.selenium.wait_for_upload.locator_strategie,
+                self._config.selenium.wait_for_upload.selector,
+            )
+            if overlay_elem.is_displayed():
+                text = overlay_elem.text.strip().lower()
+                logging.info(f"Overlay erkannt: {text}")
+
+                if "upload" in text or "wird hochgeladen" in text:
+                    return "upload"
+                elif (
+                    "das bild konnte nicht hochgeladen werden" in text
+                    or "alert" in text
+                    or "nicht möglich" in text
+                ):
+                    return "File existiert bereits"
+                else:
+                    return "unbekannt"
+        except:
+            logging.info("error in check_overlay_type")
+            return None
 
     def _wait_for_table(self):
         logger.debug("Warte auf das Laden der Tabelle...")
