@@ -30,7 +30,7 @@ class SeleniumClient:
         logger.info("Initialisiere SeleniumClient (headless=%s)", headless)
         chrome_options = Options()
 
-        self._webdriver_wait = 30  # seconds unil timeout
+        self._webdriver_wait = 120  # seconds unil timeout
 
         if headless:
             chrome_options.add_argument("--headless")
