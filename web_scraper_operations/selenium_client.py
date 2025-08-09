@@ -30,7 +30,7 @@ class SeleniumClient:
         logger.info("Initialisiere SeleniumClient (headless=%s)", headless)
         chrome_options = Options()
 
-        self._webdriver_wait = 120  # seconds unil timeout
+        self._webdriver_wait = 30  # seconds unil timeout
 
         if headless:
             chrome_options.add_argument("--headless")
@@ -98,6 +98,15 @@ class SeleniumClient:
         value = select.first_selected_option.get_attribute("value")
         logger.debug("Aktuell ausgewählter Wert: %s", value)
         return value
+    
+    def wait_for_all_elements(self, by, selector):
+        logger.debug("Warte auf alle Elemente [%s=%s]", by, selector)
+        rows = self.wait.until(
+                EC.presence_of_all_elements_located(
+                    (by, selector)
+                )
+            )
+        return rows
 
     def wait_for_element(self, by, selector):
         logger.debug("Warte auf Element [%s=%s]", by, selector)

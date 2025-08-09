@@ -78,15 +78,28 @@ jvg:
     wait_for_upload:
       selector: "ui-pnotify-text"
       locator_strategie: "class"
+    search_field:
+      selector: "gs_SEARCH_FIELD_STRING"
+      locator_strategie: "id"
+    search_strategy_menu:
+      selector: "./ancestor::tr/td[contains(@class,'ui-search-oper')]//a[contains(@class,'soptclass')]"
+      locator_strategie: "xpath"
+    search_strategy:
+      selector: "//ul[@id='sopt_menu']//a[@value='eq']"
+      locator_strategie: "xpath"
+    table_elements:
+      selector: "TABLE_ID tbody tr"
+      locator_strategie: "css"
+    
 
 
   table_id: "baymis_TABLE_ID"
   find_element:
-    selector: './/td[@aria-describedby="baymis_TABLE_ID_FIELD_STRING"]'
+    selector: './/td[@aria-describedby="baymis_TABLE_ID_SEARCH_FIELD_STRING"]'
     selector_id: './/td[@aria-describedby="baymis_TABLE_ID_ID"]'
     locator_strategie: "xpath"
   file_upload:
-    selector: "9999_Dokumente"
+    selector: "9999_UPLOAD_FIELD_NAME"
     locator_strategie: "id"
 
   table_fields:

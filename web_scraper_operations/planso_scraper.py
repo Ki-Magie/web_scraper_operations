@@ -39,7 +39,7 @@ class PlanSoMain:
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
         self._config = self._dict_to_namespace(self._config)
 
-        self._page_size = "1000"
+        self._page_size = "100"
 
         self._selenium_client = SeleniumClient(headless=self._headless_mode)
 
@@ -63,25 +63,31 @@ class PlanSoMain:
 
         logger.debug("Suche Zielzeile für den Upload...")
         # self.set_page_size(self._page_size)
-        row_info = self.find_element(search_field_name, search_string)
 
-        if row_info is None:
-            return {"message": f"{search_string} ist nicht im Feld {search_field_name}"}
+        # Lädt JEDE seite und schaut ob element da:
+        # row_info = self.find_element(search_field_name, search_string)
 
-        logger.debug("Starte Datei-Upload...")
-        status = self.upload_file(path, row_info, field_name)
-        logger.info("return of status '%s'", status)
-        self._selenium_client.wait_for_invisibility(
-            by=self._config.selenium.wait_for_upload.locator_strategie,
-            selector=self._config.selenium.wait_for_upload.selector,
-        )
+        # verwendet die Suchfunktion von planso:
+        row_info = self.find_element_with_search(search_field_name, search_string)
+        logger.info("row found: '%s'", row_info)
 
-        logger.debug("Schließe Upload-Dialog...")
+        if row_info is not None:
+            logger.debug("Starte Datei-Upload...")
+            status = self.upload_file(path, row_info, field_name)
+            logger.info("return of status '%s'", status)
+            self._selenium_client.wait_for_invisibility(
+                by=self._config.selenium.wait_for_upload.locator_strategie,
+                selector=self._config.selenium.wait_for_upload.selector,
+            )
 
-        self._selenium_client.safe_click(
-            by=self._config.selenium.upload_dialog_close.locator_strategie,
-            selector=self._config.selenium.upload_dialog_close.selector,
-        )
+            logger.debug("Schließe Upload-Dialog...")
+
+            self._selenium_client.safe_click(
+                by=self._config.selenium.upload_dialog_close.locator_strategie,
+                selector=self._config.selenium.upload_dialog_close.selector,
+            )
+        else:
+            status = f"{search_string} ist nicht im Feld {search_field_name}"
         time.sleep(0.5)
         self.logout()
 
@@ -137,6 +143,9 @@ class PlanSoMain:
 
     def upload_file(self, path, row_info, target_field="Dokumente"):
         logger.info("Starte Datei-Upload für Ziel-Feld: %s", target_field)
+        self._config.file_upload.selector = self._config.file_upload.selector.replace(
+            "SEARCH_FIELD_STRING", target_field
+        )
         try:
             self.set_page(row_info["page"])
             rows = self._selenium_client.find_elements(
@@ -211,7 +220,7 @@ class PlanSoMain:
             search_string,
         )
         self._config.find_element.selector = self._config.find_element.selector.replace(
-            "FIELD_STRING", field_name
+            "SEARCH_FIELD_STRING", field_name
         )
         nr_pages = self.get_nr_pages()
         field_idx = -1
@@ -264,6 +273,115 @@ class PlanSoMain:
                     }
         logger.warning("Element nicht gefunden: %s", search_string)
         return None
+
+    def find_element_with_search(self, field_name: str, search_string: str):
+        logger.info(
+            "Suche Element mit Feld '%s' und Suchbegriff '%s'",
+            field_name,
+            search_string,
+        )
+        wait_time = 0.3
+        self._config.selenium.search_field.selector = (
+            self._config.selenium.search_field.selector.replace(
+                "SEARCH_FIELD_STRING", field_name
+            )
+        )
+        self._config.find_element.selector = self._config.find_element.selector.replace(
+            "SEARCH_FIELD_STRING", field_name
+        )
+
+        # ----- such operator setzen
+        logger.info("setze den such operator auf 'ist gleich'")
+        time.sleep(wait_time)
+        self._selenium_client.wait_for_element(
+            self._config.selenium.search_field.locator_strategie,
+            self._config.selenium.search_field.selector,
+        )
+        time.sleep(wait_time)
+        spalten_element = self._selenium_client.find_element(
+            self._config.selenium.search_field.locator_strategie,
+            self._config.selenium.search_field.selector,
+        )
+        time.sleep(wait_time)
+        search_button = self._selenium_client.find_element(
+            self._config.selenium.search_strategy_menu.locator_strategie,
+            self._config.selenium.search_strategy_menu.selector,
+            spalten_element,
+        )
+        time.sleep(wait_time)
+        search_button.click()
+        time.sleep(wait_time)
+        self._selenium_client.click(
+            self._config.selenium.search_strategy.locator_strategie,
+            self._config.selenium.search_strategy.selector,
+        )
+        time.sleep(wait_time)
+
+        # ----- setze den such string
+        logger.info("setze den suchstring '%s'", search_string)
+        self._selenium_client.wait_for_visibility(
+            self._config.selenium.search_field.locator_strategie,
+            self._config.selenium.search_field.selector,
+        )
+        time.sleep(wait_time)
+        self._selenium_client.type_text(
+            self._config.selenium.search_field.locator_strategie,
+            self._config.selenium.search_field.selector,
+            search_string,
+        )
+        time.sleep(wait_time)
+
+        # ----- 
+        page = 1
+        field_idx = -1
+        self.set_page(page)
+        rows = self._selenium_client.find_elements(
+            by=self._config.selenium.rows_of_table.locator_strategie,
+            selector=self._config.selenium.rows_of_table.selector,
+        )
+        for idx, row in enumerate(rows):
+            if idx == 1 and field_idx == -1:
+                tds = self._selenium_client.find_elements(
+                    by=self._config.selenium.field_count.locator_strategie,
+                    selector=self._config.selenium.field_count.selector,
+                    element=row,
+                )
+                for i, td in enumerate(tds):
+                    td_id = td.get_attribute("aria-describedby")
+                    if td_id == getattr(self._config.table_fields, field_name):
+                        field_idx = i
+
+            if search_string in row.text:
+                logger.info(
+                    "'%s' wurde auf seite '%s' in Zeilenindex '%s' gefunden.",
+                    search_string,
+                    page,
+                    idx,
+                )
+                numberplate = self._selenium_client.find_element(
+                    by=self._config.find_element.locator_strategie,
+                    selector=self._config.find_element.selector,
+                    element=row,
+                ).text
+                id_nr = self._selenium_client.find_element(
+                    by=self._config.find_element.locator_strategie,
+                    selector=self._config.find_element.selector_id,
+                    element=row,
+                ).text
+                logger.info(
+                    "Element gefunden: Kennzeichen=%s, ID=%s", numberplate, id_nr
+                )
+                return {
+                    "Zeile": idx,
+                    "ID": id_nr,
+                    "plate": numberplate,
+                    "field_idx": field_idx,
+                    "page_size": self.get_page_size(),
+                    "page": page,
+                }
+        logger.warning("Element nicht gefunden: %s", search_string)
+        return None
+
 
     def open_navigation(self):
         try:
