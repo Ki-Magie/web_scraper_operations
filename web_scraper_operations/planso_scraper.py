@@ -30,7 +30,7 @@ class PlanSoMain:
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
         )
-        self._headless_mode = True
+        self._headless_mode = False
         if config is None:
             config = self._get_config_path()
 
@@ -280,7 +280,7 @@ class PlanSoMain:
             field_name,
             search_string,
         )
-        wait_time = 0.3
+        wait_time = 1
         self._config.selenium.search_field.selector = (
             self._config.selenium.search_field.selector.replace(
                 "SEARCH_FIELD_STRING", field_name
