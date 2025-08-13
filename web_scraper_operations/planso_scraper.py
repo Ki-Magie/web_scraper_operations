@@ -30,7 +30,7 @@ class PlanSoMain:
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
         )
-        self._headless_mode = False
+        self._headless_mode = True
         if config is None:
             config = self._get_config_path()
 
