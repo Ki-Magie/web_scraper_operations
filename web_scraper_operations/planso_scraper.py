@@ -1,4 +1,5 @@
 import os
+from urllib.parse import urljoin
 import logging
 import time
 from types import SimpleNamespace
@@ -24,6 +25,7 @@ class PlanSoMain:
         password: str,
         table: str,
         table_name: str,
+        base_url: str=None,
         config: str = None,
         client: str = "jvg",
     ):
@@ -38,6 +40,11 @@ class PlanSoMain:
         self._config = self._replace_in_dict(self._config, "TABLE_ID", table)
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
         self._config = self._dict_to_namespace(self._config)
+
+        if base_url is not None:
+            self._config.base_url = base_url
+            self._config.login_url = urljoin(base_url, "app")
+            self._config.logout_url = urljoin(base_url, "do?m=logout")
 
         self._page_size = "100"
 
