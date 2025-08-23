@@ -1,5 +1,7 @@
 import logging
 import time
+import tempfile
+import shutil
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -27,11 +29,13 @@ STRATEGY_MAP = {
 
 class SeleniumClient:
     def __init__(self, headless=False):
-        logger.info("Initialisiere SeleniumClient (headless=%s)", headless)
-        chrome_options = Options()
-
+        self._profile_dir = tempfile.mkdtemp(prefix="selenium_profile_")
+        logger.info("Initialisiere SeleniumClient '%s', (headless=%s)", self._profile_dir, headless)
+        
         self._webdriver_wait = 30  # seconds unil timeout
 
+        chrome_options = Options()
+        chrome_options.add_argument(f"--user-data-dir={self._profile_dir}")
         if headless:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
@@ -158,4 +162,7 @@ class SeleniumClient:
 
     def quit(self):
         logger.info("Beende WebDriver")
-        self.driver.quit()
+        try:
+            self.driver.quit()
+        finally:
+            shutil.rmtree(self._profile_dir, ignore_errors=True)

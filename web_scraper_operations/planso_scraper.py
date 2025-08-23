@@ -10,6 +10,37 @@ from .selenium_client import SeleniumClient
 # Logging-Konfiguration (wird extern in app.py gesetzt)
 logger = logging.getLogger(__name__)
 
+def download_files_from_link(user_name, password, path_link):
+    import requests
+
+    login_url = path_link.split(".de")[0] + ".de/app"
+    download_url = path_link
+
+    # Login-Daten
+    payload = {
+        "system_login_username": user_name,
+        "system_login_password": password,
+        "user_lat": "",
+        "user_lng": "",
+        "user_accuracy": ""
+    }
+    # Session starten
+    with requests.Session() as s:
+        # Login
+        r = s.post(login_url, data=payload)
+        if r.status_code == 200:
+            logger.info("login bei '%s' erfolgreich", login_url)
+        else:
+            logger.info("Login fehlgeschlagen: '%s'", r.status_code)
+
+        # Datei runterladen
+        r = s.get(download_url)
+        if r.status_code == 200:
+            return r.content
+        else:
+            logger.info("Download fehlgeschlagen: '%s'", r.status_code)
+
+
 
 class PlanSoMain:
     """
@@ -66,7 +97,7 @@ class PlanSoMain:
         self.login()
         self.open_navigation()
         self.open_table()
-        time.sleep(0.5)
+        time.sleep(1)
 
         logger.debug("Suche Zielzeile für den Upload...")
         # self.set_page_size(self._page_size)
@@ -97,6 +128,8 @@ class PlanSoMain:
             status = f"{search_string} ist nicht im Feld {search_field_name}"
         time.sleep(0.5)
         self.logout()
+        time.sleep(0.5)
+        self._selenium_client.quit()
 
         logger.info("Upload-Flow abgeschlossen.")
 
@@ -184,7 +217,7 @@ class PlanSoMain:
                         + f"[{target_field_idx}]",
                     )
                     upload_cell.click()
-                    time.sleep(0.5)
+                    time.sleep(1)
                     break
 
             rows = self._selenium_client.find_elements(
@@ -551,3 +584,5 @@ class PlanSoMain:
     def _get_config_path(self):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(script_dir, "config.yaml")
+    
+
