@@ -32,6 +32,12 @@ jvg:
     navigation:
       selector: "//h3[contains(., 'Navigation')]"
       locator_strategie: "xpath"
+    schnellzugriff:
+      selector: "//h3[a[contains(text(),'Schnellzugriff')]]"
+      locator_strategie: "xpath"
+    orga_list:
+      selector: "button[data-id='ORGA_LIST_ID']"
+      locator_strategie: "css"
     table_name:
       selector: 'a[title="TABLE_NAME"]'
       locator_strategie: "css"

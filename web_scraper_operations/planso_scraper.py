@@ -56,6 +56,7 @@ class PlanSoMain:
         password: str,
         table: str,
         table_name: str,
+        orga_list_id: str,
         base_url: str=None,
         config: str = None,
         client: str = "jvg",
@@ -63,13 +64,14 @@ class PlanSoMain:
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
         )
-        self._headless_mode = True
+        self._headless_mode = False
         if config is None:
             config = self._get_config_path()
 
         self._load_cofig(config, client)
         self._config = self._replace_in_dict(self._config, "TABLE_ID", table)
         self._config = self._replace_in_dict(self._config, "TABLE_NAME", table_name)
+        self._config = self._replace_in_dict(self._config, "ORGA_LIST_ID", orga_list_id)
         self._config = self._dict_to_namespace(self._config)
 
         if base_url is not None:
@@ -134,6 +136,17 @@ class PlanSoMain:
         logger.info("Upload-Flow abgeschlossen.")
 
         return {"message": status}
+    
+    def planso_invoice_positions_flow(self, license_plate:str):
+        """
+        Vollständiger Ablauf zum auslesen von Ersatzteil Positionen bezogen auf ein Nummernschild
+        """
+        logger.info("Starte Invoice Flow")
+
+        self._selenium_client.open_url(url=self._config.base_url)
+        self.login()
+        self.open_schnellzugriff()
+        self.open_orga_list()
 
     def _load_cofig(self, config: str, client: str):
         logger.debug("Lade Konfigurationsdatei: %s", config)
@@ -439,6 +452,17 @@ class PlanSoMain:
             logger.error("Navigation öffnen fehlgeschlagen: %s", str(e))
             return False
 
+    def open_schnellzugriff(self):
+        try:
+            logger.info("Öffne Schnellzugriff...")
+            self._selenium_client.click(
+                by=self._config.selenium.schnellzugriff.locator_strategie,
+                selector=self._config.selenium.schnellzugriff.selector,
+            )
+        except Exception as e:
+            logger.error("Navigation öffnen fehlgeschlagen: %s", str(e))
+            return False
+
     def open_table(self):
         try:
             logger.info("Öffne Tabelle...")
@@ -448,6 +472,19 @@ class PlanSoMain:
             )
             logger.info("Warte auf Tabelle...")
             self._wait_for_table()
+        except Exception as e:
+            logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
+            return False
+    
+    def open_orga_list(self):
+        try:
+            logger.info("Öffne Orga Liste...")
+            self._selenium_client.click(
+                by=self._config.selenium.orga_list.locator_strategie,
+                selector=self._config.selenium.orga_list.selector,
+            )
+            logger.info("Warte auf Orga Liste...")
+            self._wait_for_orga_list()
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
             return False
@@ -559,6 +596,10 @@ class PlanSoMain:
             self._config.selenium.table_element.locator_strategie,
             self._config.selenium.table_element.selector,
         )
+    
+    def _wait_for_orga_list(self):
+        logger.debug("Warte auf das Laden der Orga Liste...")
+        
 
     def _replace_in_dict(self, data, search, replace):
         if isinstance(data, dict):
