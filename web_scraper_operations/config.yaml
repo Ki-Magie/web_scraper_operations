@@ -45,7 +45,10 @@ jvg:
       selector: "load_baymis_TABLE_ID"
       locator_strategie: "id"
     table_element:
-      selector: "jqgh_baymis_TABLE_ID_Fahrername"
+      selector: "jqgh_baymis_TABLE_ID_Kennzeichen"
+      locator_strategie: "id"
+    orga_list_element:
+      selector: "jqgh_baymis_TABLE_ID_open_project_details"
       locator_strategie: "id"
     next_page_button:
       selector: "next_pbaymis_TABLE_ID"
@@ -96,6 +99,16 @@ jvg:
     table_elements:
       selector: "TABLE_ID tbody tr"
       locator_strategie: "css"
+    details_button:
+      selector_row: "//table[contains(@class,'ui-jqgrid-btable')]//tbody/tr[not(contains(@class,'jqgfirstrow'))]"
+      selector: ".//button[span[contains(text(),'Details')]]"
+      locator_strategie: "xpath"
+    teile_button:
+      selector: "li[aria-controls='psrs_parts'] a"
+      locator_strategie: css
+    teile_elements:
+      selector: "tr.parts_single_row"
+      locator_strategie: css
     
 
 
@@ -103,11 +116,25 @@ jvg:
   find_element:
     selector: './/td[@aria-describedby="baymis_TABLE_ID_SEARCH_FIELD_STRING"]'
     selector_id: './/td[@aria-describedby="baymis_TABLE_ID_ID"]'
+    selector_details: './/td[@aria-describedby="baymis_TABLE_ID_open_project_details"]'
     locator_strategie: "xpath"
   file_upload:
     selector: "9999_UPLOAD_FIELD_NAME"
     locator_strategie: "id"
-
+  
+  teile_tabelle:
+    locator_strategie: "css"
+    name: "td.for_parts_edit"
+    part_nr: "td.teile_nr_fields"
+    price: "span.rsp_price_for_parts"
+    quantity: "span.rsp_menge_for_parts"
+    total_price: "td.rsp_parts_total_price"
+    bestellt: "input.bestellt"
+    delivered: "input.delivered"
+    status: "td.spare_part_main_status i"
+    bestelldatum: "span.rsvgp_bestelldate_td"
+    project_num: "td.parts_project_num_td"
+  
   table_fields:
     subgrid: "baymis_TABLE_ID_subgrid"
     ID: "baymis_TABLE_ID_ID"

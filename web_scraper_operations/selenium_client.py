@@ -69,8 +69,15 @@ class SeleniumClient:
         if send_return:
             field.send_keys(Keys.RETURN)
 
-    def click(self, by, selector):
+    def click(self, by, selector, element=None):
         logger.debug("Klicke auf Element [%s=%s]", by, selector)
+        if element:
+            details_button = element.find_element(
+                STRATEGY_MAP[by],
+                selector
+            )
+            details_button.click()
+            return
         button = self.wait.until(
             EC.element_to_be_clickable((STRATEGY_MAP[by], selector))
         )
@@ -88,12 +95,13 @@ class SeleniumClient:
         raise Exception(f"Konnte Element {selector} nicht klicken – immer blockiert")
 
     def set_select_element(self, by, selector, value: str):
-        logger.debug("Setze Select-Element [%s=%s] auf Wert '%s'", by, selector, value)
+        logger.info("Setze Select-Element [%s=%s] auf Wert '%s'", by, selector, value)
         select_element = self.wait.until(
             EC.presence_of_element_located((STRATEGY_MAP[by], selector))
         )
         select = Select(select_element)
         select.select_by_value(value)
+        logger.info("OK")
 
     def get_select_element(self, by, selector):
         logger.debug("Lese ausgewählten Wert aus Select-Element [%s=%s]", by, selector)
@@ -104,10 +112,10 @@ class SeleniumClient:
         return value
     
     def wait_for_all_elements(self, by, selector):
-        logger.debug("Warte auf alle Elemente [%s=%s]", by, selector)
+        logger.info("Warte auf alle Elemente [%s, %s]", by, selector)
         rows = self.wait.until(
                 EC.presence_of_all_elements_located(
-                    (by, selector)
+                    (STRATEGY_MAP[by], selector)
                 )
             )
         return rows
@@ -117,7 +125,7 @@ class SeleniumClient:
         self.wait.until(EC.presence_of_element_located((STRATEGY_MAP[by], selector)))
 
     def wait_for_visibility(self, by, selector):
-        logger.debug("Warte auf Sichtbarkeit von [%s=%s]", by, selector)
+        logger.info("Warte auf Sichtbarkeit von [%s=%s]", by, selector)
         self.wait.until(EC.visibility_of_element_located((STRATEGY_MAP[by], selector)))
 
     def wait_for_invisibility(self, by, selector):

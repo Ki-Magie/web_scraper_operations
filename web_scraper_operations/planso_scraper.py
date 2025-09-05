@@ -5,10 +5,11 @@ import time
 from types import SimpleNamespace
 import yaml
 
-from .selenium_client import SeleniumClient
+from web_scraper_operations.selenium_client import SeleniumClient
 
 # Logging-Konfiguration (wird extern in app.py gesetzt)
 logger = logging.getLogger(__name__)
+
 
 def download_files_from_link(user_name, password, path_link):
     import requests
@@ -22,7 +23,7 @@ def download_files_from_link(user_name, password, path_link):
         "system_login_password": password,
         "user_lat": "",
         "user_lng": "",
-        "user_accuracy": ""
+        "user_accuracy": "",
     }
     # Session starten
     with requests.Session() as s:
@@ -41,7 +42,6 @@ def download_files_from_link(user_name, password, path_link):
             logger.info("Download fehlgeschlagen: '%s'", r.status_code)
 
 
-
 class PlanSoMain:
     """
     Hauptklasse zur Automatisierung der Interaktion mit der PlanSo-Webanwendung via Selenium.
@@ -54,10 +54,10 @@ class PlanSoMain:
         self,
         username: str,
         password: str,
-        table: str,
-        table_name: str,
-        orga_list_id: str,
-        base_url: str=None,
+        table: str = "",
+        table_name: str = "",
+        orga_list_id: str = "",
+        base_url: str = None,
         config: str = None,
         client: str = "jvg",
     ):
@@ -86,67 +86,6 @@ class PlanSoMain:
         # Login-Daten setzen (aus Sicherheitsgründen nicht loggen!)
         self._config.login_payload.system_login_username = username
         self._config.login_payload.system_login_password = password
-
-    def planso_upload_flow(
-        self, field_name: str, search_field_name: str, search_string: str, path: str
-    ):
-        """
-        Vollständiger Ablauf für den Datei-Upload: Login, Navigation, Dateiupload, Logout.
-        """
-        logger.info("Starte Upload-Flow für Datei: %s", path)
-
-        self._selenium_client.open_url(url=self._config.base_url)
-        self.login()
-        self.open_navigation()
-        self.open_table()
-        time.sleep(1)
-
-        logger.debug("Suche Zielzeile für den Upload...")
-        # self.set_page_size(self._page_size)
-
-        # Lädt JEDE seite und schaut ob element da:
-        # row_info = self.find_element(search_field_name, search_string)
-
-        # verwendet die Suchfunktion von planso:
-        row_info = self.find_element_with_search(search_field_name, search_string)
-        logger.info("row found: '%s'", row_info)
-
-        if row_info is not None:
-            logger.debug("Starte Datei-Upload...")
-            status = self.upload_file(path, row_info, field_name)
-            logger.info("return of status '%s'", status)
-            self._selenium_client.wait_for_invisibility(
-                by=self._config.selenium.wait_for_upload.locator_strategie,
-                selector=self._config.selenium.wait_for_upload.selector,
-            )
-
-            logger.debug("Schließe Upload-Dialog...")
-
-            self._selenium_client.safe_click(
-                by=self._config.selenium.upload_dialog_close.locator_strategie,
-                selector=self._config.selenium.upload_dialog_close.selector,
-            )
-        else:
-            status = f"{search_string} ist nicht im Feld {search_field_name}"
-        time.sleep(0.5)
-        self.logout()
-        time.sleep(0.5)
-        self._selenium_client.quit()
-
-        logger.info("Upload-Flow abgeschlossen.")
-
-        return {"message": status}
-    
-    def planso_invoice_positions_flow(self, license_plate:str):
-        """
-        Vollständiger Ablauf zum auslesen von Ersatzteil Positionen bezogen auf ein Nummernschild
-        """
-        logger.info("Starte Invoice Flow")
-
-        self._selenium_client.open_url(url=self._config.base_url)
-        self.login()
-        self.open_schnellzugriff()
-        self.open_orga_list()
 
     def _load_cofig(self, config: str, client: str):
         logger.debug("Lade Konfigurationsdatei: %s", config)
@@ -193,6 +132,15 @@ class PlanSoMain:
     def logout(self):
         logger.info("Führe Logout durch...")
         self._selenium_client.open_url(url=self._config.logout_url)
+        time.sleep(0.5)
+        logger.info("Schließe Client")
+        self._selenium_client.quit()
+
+    def open_url(self, url):
+        self._selenium_client.open_url(url=url)
+
+    def open_base_url(self):
+        self.open_url(url=self._config.base_url)
 
     def upload_file(self, path, row_info, target_field="Dokumente"):
         logger.info("Starte Datei-Upload für Ziel-Feld: %s", target_field)
@@ -261,9 +209,25 @@ class PlanSoMain:
                     )
 
                     logger.info("Datei erfolgreich hochgeladen.")
+                    self._selenium_client.wait_for_invisibility(
+                        by=self._config.selenium.wait_for_upload.locator_strategie,
+                        selector=self._config.selenium.wait_for_upload.selector,
+                    )
+                    self._selenium_client.safe_click(
+                        by=self._config.selenium.upload_dialog_close.locator_strategie,
+                        selector=self._config.selenium.upload_dialog_close.selector,
+                    )
                     return "File Upload erfolgreich"
         except Exception as e:
             logger.error("Upload fehlgeschlagen: %s", str(e))
+        self._selenium_client.wait_for_invisibility(
+            by=self._config.selenium.wait_for_upload.locator_strategie,
+            selector=self._config.selenium.wait_for_upload.selector,
+        )
+        self._selenium_client.safe_click(
+            by=self._config.selenium.upload_dialog_close.locator_strategie,
+            selector=self._config.selenium.upload_dialog_close.selector,
+        )
         return "File not uploaded"
 
     def find_element(self, field_name: str, search_string: str):
@@ -384,7 +348,7 @@ class PlanSoMain:
         )
         time.sleep(wait_time)
 
-        # ----- 
+        # -----
         page = 1
         field_idx = -1
         self.set_page(page)
@@ -435,7 +399,6 @@ class PlanSoMain:
         logger.warning("Element nicht gefunden: %s", search_string)
         return None
 
-
     def open_navigation(self):
         try:
             logger.info("Öffne Navigation...")
@@ -470,12 +433,11 @@ class PlanSoMain:
                 by=self._config.selenium.table_name.locator_strategie,
                 selector=self._config.selenium.table_name.selector,
             )
-            logger.info("Warte auf Tabelle...")
             self._wait_for_table()
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
             return False
-    
+
     def open_orga_list(self):
         try:
             logger.info("Öffne Orga Liste...")
@@ -487,6 +449,40 @@ class PlanSoMain:
             self._wait_for_orga_list()
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
+            return False
+
+    def open_details(self, row_nr):
+        try:
+            logger.info("Öffne Details...")
+            self._selenium_client.wait_for_visibility(
+                by=self._config.selenium.details_button.locator_strategie,
+                selector=self._config.selenium.details_button.selector_row
+                + f"[{row_nr}]",
+            )
+            row = self._selenium_client.find_element(
+                by=self._config.selenium.details_button.locator_strategie,
+                selector=self._config.selenium.details_button.selector_row
+                + f"[{row_nr}]",
+            )
+            self._selenium_client.click(
+                by=self._config.selenium.details_button.locator_strategie,
+                selector=self._config.selenium.details_button.selector,
+                element=row,
+            )
+            # self._wait_for_table()
+        except Exception as e:
+            logger.error("Details öffnen fehlgeschlagen: %s", str(e))
+            return False
+
+    def open_teile(self):
+        try:
+            logger.info("Öffne Teile...")
+            self._selenium_client.click(
+                by=self._config.selenium.teile_button.locator_strategie,
+                selector=self._config.selenium.teile_button.selector,
+            )
+        except Exception as e:
+            logger.error("Teile öffnen fehlgeschlagen: %s", str(e))
             return False
 
     def next_page(self):
@@ -548,6 +544,105 @@ class PlanSoMain:
         )
         self._wait_for_table()
 
+    def get_teile_info(self):
+        try:
+            logger.info("Lese Teile Infos")
+            logger.info("wait_for_invisibility")
+            self._selenium_client.wait_for_visibility(
+                by=self._config.selenium.teile_elements.locator_strategie,
+                selector=self._config.selenium.teile_elements.selector
+            )
+            logger.info("wait_for_all_elements")
+            rows = self._selenium_client.wait_for_all_elements(
+                by=self._config.selenium.teile_elements.locator_strategie,
+                selector=self._config.selenium.teile_elements.selector,
+            )
+            logger.info("Lese Teile Infos2")
+            # 3. Tabelle auslesen
+            parts_data = []
+
+            for row in rows:
+                part = {}
+                logger.info(f"{row}")
+                logger.info("lese data_id")
+                part["data_id"] = row.get_attribute("data-id")
+                logger.info("lese data_partid")
+                part["data_partid"] = row.get_attribute("data-partid")
+                logger.info("lese data_pnum")
+                part["data_pnum"] = row.get_attribute("data-pnum")
+                logger.info("lese name")
+                part["name"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.name,
+                    element=row,
+                ).text.strip()
+                logger.info("lese part_number")
+                part["part_number"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.part_nr,
+                    element=row,
+                ).get_attribute("data-prtnumber")
+                logger.info("lese price")
+                part["price"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.price,
+                    element=row,
+                ).text.strip()
+                logger.info("lese quantity")
+                part["quantity"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.quantity,
+                    element=row,
+                ).text.strip()
+                logger.info("lese total_price")
+                part["total_price"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.total_price,
+                    element=row,
+                ).text.strip()
+                logger.info("lese bestellt")
+                part["bestellt"] = (
+                    self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.bestellt,
+                        element=row,
+                    ).get_attribute("checked")
+                    is not None
+                )
+                logger.info("lese delivered")
+                part["delivered"] = (
+                    self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.delivered,
+                        element=row,
+                    ).get_attribute("checked")
+                    is not None
+                )
+                logger.info("lese status")
+                part["status"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.status,
+                    element=row,
+                ).get_attribute("title")
+                logger.info("lese bestelldatum")
+                part["bestelldatum"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.bestelldatum,
+                    element=row,
+                ).text.strip()
+                logger.info("lese project_num")
+                part["project_num"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.project_num,
+                    element=row,
+                ).text.strip()
+
+                parts_data.append(part)
+            return parts_data
+        except Exception as e:
+            logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
+            return []
+
     def check_for_alert(self):
         try:
             self._selenium_client.wait_for_visibility(
@@ -583,7 +678,7 @@ class PlanSoMain:
             return None
 
     def _wait_for_table(self):
-        logger.debug("Warte auf das Laden der Tabelle...")
+        logger.info("Warte auf das Laden der Tabelle...")
         self._selenium_client.wait_for_visibility(
             self._config.selenium.load_table_indicator.locator_strategie,
             self._config.selenium.load_table_indicator.selector,
@@ -596,10 +691,21 @@ class PlanSoMain:
             self._config.selenium.table_element.locator_strategie,
             self._config.selenium.table_element.selector,
         )
-    
+
     def _wait_for_orga_list(self):
         logger.debug("Warte auf das Laden der Orga Liste...")
-        
+        self._selenium_client.wait_for_visibility(
+            self._config.selenium.load_table_indicator.locator_strategie,
+            self._config.selenium.load_table_indicator.selector,
+        )
+        self._selenium_client.wait_for_invisibility(
+            self._config.selenium.load_table_indicator.locator_strategie,
+            self._config.selenium.load_table_indicator.selector,
+        )
+        self._selenium_client.wait_for_element(
+            self._config.selenium.orga_list_element.locator_strategie,
+            self._config.selenium.orga_list_element.selector,
+        )
 
     def _replace_in_dict(self, data, search, replace):
         if isinstance(data, dict):
@@ -625,5 +731,3 @@ class PlanSoMain:
     def _get_config_path(self):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(script_dir, "config.yaml")
-    
-
