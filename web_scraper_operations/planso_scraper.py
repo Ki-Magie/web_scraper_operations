@@ -60,11 +60,12 @@ class PlanSoMain:
         base_url: str = None,
         config: str = None,
         client: str = "jvg",
+        headless_mode:bool = True
     ):
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
         )
-        self._headless_mode = False
+        self._headless_mode = headless_mode
         if config is None:
             config = self._get_config_path()
 
@@ -547,17 +548,28 @@ class PlanSoMain:
     def get_teile_info(self):
         try:
             logger.info("Lese Teile Infos")
-            logger.info("wait_for_invisibility")
-            self._selenium_client.wait_for_visibility(
-                by=self._config.selenium.teile_elements.locator_strategie,
-                selector=self._config.selenium.teile_elements.selector
-            )
+            time.sleep(1)
+            # self._selenium_client.wait_for_visibility(
+            #     by=self._config.selenium.teile_elements.locator_strategie,
+            #     selector=self._config.selenium.teile_elements.selector,
+            # )
             logger.info("wait_for_all_elements")
-            rows = self._selenium_client.wait_for_all_elements(
-                by=self._config.selenium.teile_elements.locator_strategie,
-                selector=self._config.selenium.teile_elements.selector,
+            rows, matched_selector = self._selenium_client.wait_for_all_elements(
+                by=[
+                    self._config.selenium.teile_elements.locator_strategie,
+                    self._config.selenium.keine_teile.locator_strategie,
+                ],
+                selector=[
+                    self._config.selenium.teile_elements.selector,
+                    self._config.selenium.keine_teile.selector,
+                ],
+                return_status=True
             )
-            logger.info("Lese Teile Infos2")
+            if matched_selector == 1:
+                logger.info("Keine Ersatzteile vorhanden.")
+                return []
+            logger.info(f"WTF: {rows}")
+
             # 3. Tabelle auslesen
             parts_data = []
 

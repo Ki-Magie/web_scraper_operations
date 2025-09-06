@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
@@ -28,7 +28,7 @@ STRATEGY_MAP = {
 
 
 class SeleniumClient:
-    def __init__(self, headless=False):
+    def __init__(self, headless=True):
         self._profile_dir = tempfile.mkdtemp(prefix="selenium_profile_")
         logger.info("Initialisiere SeleniumClient '%s', (headless=%s)", self._profile_dir, headless)
         
@@ -111,14 +111,52 @@ class SeleniumClient:
         logger.debug("Aktuell ausgewählter Wert: %s", value)
         return value
     
-    def wait_for_all_elements(self, by, selector):
+    def wait_for_all_elements(self, by, selector, timeout=10, return_status=False):
+        """
+        Wartet auf Elemente oder alternative Fallbacks.
+
+        Parameter:
+        ----------
+        by : str | list[str]
+            Ein einzelner By-String oder eine Liste von By-Strings.
+        selector : str | list[str]
+            Ein einzelner Selector oder eine Liste von Selectors.
+        timeout : int
+            Maximale Wartezeit in Sekunden.
+        return_status : bool
+            Wenn True, wird zusätzlich der Index des getriggerten Selectors zurückgegeben.
+
+        Rückgabe:
+        ---------
+        list[WebElement] | (list[WebElement], int) | []
+        """
         logger.info("Warte auf alle Elemente [%s, %s]", by, selector)
-        rows = self.wait.until(
-                EC.presence_of_all_elements_located(
-                    (STRATEGY_MAP[by], selector)
-                )
-            )
-        return rows
+
+        # Typvalidierung
+        if isinstance(by, str) and isinstance(selector, str):
+            by = [by]
+            selector = [selector]
+        elif isinstance(by, list) and isinstance(selector, list):
+            if len(by) != len(selector):
+                raise ValueError("Die Länge von 'by' und 'selector' muss übereinstimmen")
+        else:
+            raise ValueError("'by' und 'selector' müssen entweder beide str oder beide list sein.")
+
+        def check(driver):
+            for i in range(len(by)):
+                elements = driver.find_elements(STRATEGY_MAP[by[i]], selector[i])
+                if elements and elements[0].is_displayed():
+                    return elements, i
+            return False
+
+        try:
+            elements, matched_index = self.wait.until(check)
+        except TimeoutException:
+            logger.warning("Timeout beim Warten auf Elemente: %s", selector)
+            return ([], -1) if return_status else []
+
+        logger.info("Gefundene Elemente: %d (Selector: %s)", len(elements), selector[matched_index])
+        return (elements, matched_index) if return_status else elements
 
     def wait_for_element(self, by, selector):
         logger.debug("Warte auf Element [%s=%s]", by, selector)

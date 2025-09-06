@@ -19,6 +19,7 @@ def planso_upload_flow(
     base_url: str = None,
     config: str = None,
     client: str = "jvg",
+    headless_mode:bool = True
 ):
     """
     Vollständiger Ablauf für den Datei-Upload: Login, Navigation, Dateiupload, Logout.
@@ -32,7 +33,8 @@ def planso_upload_flow(
         table_name=table_name,
         base_url=base_url,
         config=config,
-        client=client
+        client=client,
+        headless_mode=headless_mode
         )
 
     planso.open_base_url()
@@ -75,6 +77,7 @@ def planso_invoice_positions_flow(
     base_url: str = None,
     config: str = None,
     client: str = "jvg",
+    headless_mode:bool = True
 ):
     """
     Vollständiger Ablauf zum auslesen von Ersatzteil Positionen bezogen auf ein Nummernschild
@@ -88,7 +91,8 @@ def planso_invoice_positions_flow(
         orga_list_id=orga_list_id,
         base_url=base_url,
         config=config,
-        client=client
+        client=client,
+        headless_mode=headless_mode
         )
     planso.open_base_url()
     planso.login()

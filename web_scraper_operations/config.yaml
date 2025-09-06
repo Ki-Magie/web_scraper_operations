@@ -109,6 +109,9 @@ jvg:
     teile_elements:
       selector: "tr.parts_single_row"
       locator_strategie: css
+    keine_teile:
+      selector: "//p[contains(., 'Keine Ersatzteile bekannt')]"
+      locator_strategie: "xpath"
     
 
 
