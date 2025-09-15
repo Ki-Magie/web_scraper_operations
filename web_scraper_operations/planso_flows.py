@@ -105,9 +105,54 @@ def planso_invoice_positions_flow(
 
     planso.open_details(row_nr=row_info["Zeile"])
     planso.open_teile()
-    teile_info = planso.get_teile_info()
+    teile_info = planso.get_teile_info() # inkl gesamtpreis
 
     time.sleep(0.5)
     planso.logout()
 
     return {"parts": teile_info}
+
+def planso_spareparts_ok(
+    search_field_name: str,
+    search_string: str,
+    positions: list,
+    username: str,
+    password: str,
+    table: str ='',
+    orga_list_id: str = '',
+    base_url: str = None,
+    config: str = None,
+    client: str = "jvg",
+    headless_mode:bool = True):
+    """
+    if positions list is empty [], all positions get checked
+    """
+    logger.info("Starte Invoice Flow")
+
+    planso = PlanSoMain(
+        username=username, 
+        password=password, 
+        table=table, 
+        orga_list_id=orga_list_id,
+        base_url=base_url,
+        config=config,
+        client=client,
+        headless_mode=headless_mode
+        )
+    planso.open_base_url()
+    planso.login()
+    planso.open_schnellzugriff()
+    planso.open_orga_list()
+    time.sleep(1)
+    logger.debug("Suche Zielzeile für Details...")
+    row_info = planso.find_element_with_search(search_field_name, search_string)
+    logger.info("row found: '%s'", row_info)
+    planso.open_details(row_nr=row_info["Zeile"])
+    planso.open_teile()
+
+    # check boxes
+    result = planso.check_sparepart_boxes(positions=positions)
+
+    time.sleep(0.5)
+    planso.logout()
+    return {"parts": result}

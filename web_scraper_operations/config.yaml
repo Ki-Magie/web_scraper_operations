@@ -137,6 +137,15 @@ jvg:
     status: "td.spare_part_main_status i"
     bestelldatum: "span.rsvgp_bestelldate_td"
     project_num: "td.parts_project_num_td"
+    bottom_line_gesamtpreis:
+      selector: "table.table.table-striped.table-bordered tbody"
+      locator_strategie: "css"
+      selector_tr: "tr"
+      selector_td: "td"
+      locator_strategie_tag: "tag"
+    price_checkbox:
+      selector: "input.price_checked.spare_part_status"
+      locator_strategie: "css"
   
   table_fields:
     subgrid: "baymis_TABLE_ID_subgrid"

@@ -553,6 +553,167 @@ class PlanSoMain:
             #     by=self._config.selenium.teile_elements.locator_strategie,
             #     selector=self._config.selenium.teile_elements.selector,
             # )
+            logger.debug("wait_for_all_elements")
+            rows, matched_selector = self._selenium_client.wait_for_all_elements(
+                by=[
+                    self._config.selenium.teile_elements.locator_strategie,
+                    self._config.selenium.keine_teile.locator_strategie,
+                ],
+                selector=[
+                    self._config.selenium.teile_elements.selector,
+                    self._config.selenium.keine_teile.selector,
+                ],
+                return_status=True
+            )
+            if matched_selector == 1:
+                logger.info("Keine Ersatzteile vorhanden.")
+                return []
+
+            # 3. Tabelle auslesen
+            parts_data = []
+
+            for row in rows:
+                part = {}
+                logger.debug(f"{row}")
+                logger.debug("lese data_id")
+                part["data_id"] = row.get_attribute("data-id")
+                logger.debug("lese data_partid")
+                part["data_partid"] = row.get_attribute("data-partid")
+                logger.debug("lese data_pnum")
+                part["data_pnum"] = row.get_attribute("data-pnum")
+                logger.debug("lese name")
+                part["name"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.name,
+                    element=row,
+                ).text.strip()
+                logger.debug("lese part_number")
+                part["part_number"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.part_nr,
+                    element=row,
+                ).get_attribute("data-prtnumber")
+                logger.debug("lese price")
+                part["price"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.price,
+                    element=row,
+                ).text.strip()
+                logger.debug("lese quantity")
+                part["quantity"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.quantity,
+                    element=row,
+                ).text.strip()
+                logger.debug("lese total_price")
+                part["total_price"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.total_price,
+                    element=row,
+                ).text.strip()
+                logger.debug("lese bestellt")
+                part["bestellt"] = (
+                    self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.bestellt,
+                        element=row,
+                    ).get_attribute("checked")
+                    is not None
+                )
+                logger.debug("lese delivered")
+                part["delivered"] = (
+                    self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.delivered,
+                        element=row,
+                    ).get_attribute("checked")
+                    is not None
+                )
+                logger.debug("lese status")
+                part["status"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.status,
+                    element=row,
+                ).get_attribute("title")
+                logger.debug("lese bestelldatum")
+                part["bestelldatum"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.bestelldatum,
+                    element=row,
+                ).text.strip()
+                logger.debug("lese project_num")
+                part["project_num"] = self._selenium_client.find_element(
+                    by=self._config.teile_tabelle.locator_strategie,
+                    selector=self._config.teile_tabelle.project_num,
+                    element=row,
+                ).text.strip()
+
+                parts_data.append(part)
+
+            logger.info(f"ersatzteile gedunden: {parts_data}")
+            
+            # Gesamtpreis und ersatzteile_summe
+            try:
+                table = self._selenium_client.wait_for_all_elements(
+                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie,
+                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector
+                )[0]  # nur eine Tabelle
+            except Exception as e:
+                logger.warning(f"Gesamtpreis Tabelle konnte nicht gefunden werden: {e}")
+            
+            gesamtpreis = None
+            ersatzteile_summe = None
+            try:
+                first_row = self._selenium_client.find_elements(
+                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
+                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_tr,
+                    element=table
+                )[0]
+                ersatzteile_summe_td = self._selenium_client.find_elements(
+                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
+                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_td,
+                    element=first_row
+                )[1]
+                ersatzteile_summe = ersatzteile_summe_td.text.replace("€", "").replace(",", ".").strip()
+            except Exception as e:
+                logger.warning(f"Ersatzteile Summe konnte nicht ausgelesen werden: {e}")
+            parts_data.append({"ersatzteile_summe": ersatzteile_summe})
+
+            try:
+                last_row = self._selenium_client.find_elements(
+                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
+                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_tr,
+                    element=table
+                )[-1]
+                gesamtpreis_td = self._selenium_client.find_elements(
+                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
+                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_td,
+                    element=last_row
+                )[-1]
+                gesamtpreis = gesamtpreis_td.text.strip()
+
+                # last_row = table.find_elements(self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag, "tr")[-1]
+                # gesamtpreis_td = last_row.find_elements(self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag, "td")[-1]
+                # gesamtpreis = gesamtpreis_td.find_element(self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag, "b").text.strip()
+            except Exception as e:
+                logger.warning(f"Gesamtpreis konnte nicht ausgelesen werden: {e}")
+            parts_data.append({"gesamtpreis": gesamtpreis})
+
+
+
+            return parts_data
+        except Exception as e:
+            logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
+            return []
+    
+    def check_sparepart_boxes(self, positions=[]):
+        try:
+            logger.info("checke Ersatzteil check boxen")
+            time.sleep(1)
+            # self._selenium_client.wait_for_visibility(
+            #     by=self._config.selenium.teile_elements.locator_strategie,
+            #     selector=self._config.selenium.teile_elements.selector,
+            # )
             logger.info("wait_for_all_elements")
             rows, matched_selector = self._selenium_client.wait_for_all_elements(
                 by=[
@@ -568,92 +729,50 @@ class PlanSoMain:
             if matched_selector == 1:
                 logger.info("Keine Ersatzteile vorhanden.")
                 return []
-            logger.info(f"WTF: {rows}")
 
-            # 3. Tabelle auslesen
-            parts_data = []
-
+            # zeilen durchgehen:
+            checked = {}
             for row in rows:
-                part = {}
-                logger.info(f"{row}")
-                logger.info("lese data_id")
-                part["data_id"] = row.get_attribute("data-id")
-                logger.info("lese data_partid")
-                part["data_partid"] = row.get_attribute("data-partid")
-                logger.info("lese data_pnum")
-                part["data_pnum"] = row.get_attribute("data-pnum")
-                logger.info("lese name")
-                part["name"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.name,
-                    element=row,
-                ).text.strip()
-                logger.info("lese part_number")
-                part["part_number"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.part_nr,
-                    element=row,
-                ).get_attribute("data-prtnumber")
-                logger.info("lese price")
-                part["price"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.price,
-                    element=row,
-                ).text.strip()
-                logger.info("lese quantity")
-                part["quantity"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.quantity,
-                    element=row,
-                ).text.strip()
-                logger.info("lese total_price")
-                part["total_price"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.total_price,
-                    element=row,
-                ).text.strip()
-                logger.info("lese bestellt")
-                part["bestellt"] = (
-                    self._selenium_client.find_element(
+                try:
+                    logger.info("lese name")
+                    part_name = self._selenium_client.find_element(
                         by=self._config.teile_tabelle.locator_strategie,
-                        selector=self._config.teile_tabelle.bestellt,
+                        selector=self._config.teile_tabelle.name,
                         element=row,
-                    ).get_attribute("checked")
-                    is not None
-                )
-                logger.info("lese delivered")
-                part["delivered"] = (
-                    self._selenium_client.find_element(
+                    ).text.strip()
+                    logger.info("lese part_number")
+                    part_number = self._selenium_client.find_element(
                         by=self._config.teile_tabelle.locator_strategie,
-                        selector=self._config.teile_tabelle.delivered,
+                        selector=self._config.teile_tabelle.part_nr,
                         element=row,
-                    ).get_attribute("checked")
-                    is not None
-                )
-                logger.info("lese status")
-                part["status"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.status,
-                    element=row,
-                ).get_attribute("title")
-                logger.info("lese bestelldatum")
-                part["bestelldatum"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.bestelldatum,
-                    element=row,
-                ).text.strip()
-                logger.info("lese project_num")
-                part["project_num"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.project_num,
-                    element=row,
-                ).text.strip()
+                    ).get_attribute("data-prtnumber")
+                    if (part_name in positions or part_number in positions) or positions == []:
+                        checkbox = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.price_checkbox.locator_strategie,
+                        selector=self._config.teile_tabelle.price_checkbox.selector,
+                        element=row,
+                        )
+                        logger.info(f"Found checkbox: {checkbox}")
+                        time.sleep(0.5)
+                        print(f"checkbox.is_selected(): {checkbox.is_selected()}")
+                        if not checkbox.is_selected():
+                            logger.info(f"checking price_checkbox for {part_name}")
 
-                parts_data.append(part)
-            return parts_data
+                            self._selenium_client.execute_script("""
+                            arguments[0].checked = true;
+                            arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
+                            """, checkbox)
+                            # checkbox.click()
+                            checked[part_name] = "checked"
+                except Exception as e:
+                    logger.warning(f"checkbox checken fehlgeschlagen: {e}")
+
+            return checked    
         except Exception as e:
-            logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
-            return []
+            logger.error("Checkboxen checken fehlgeschlagen: %s", str(e))
+            return {"error: Checkboxen checken fehlgeschlagen"}
+
+
 
     def check_for_alert(self):
         try:

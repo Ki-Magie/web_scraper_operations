@@ -179,7 +179,7 @@ class SeleniumClient:
         )
 
     def find_elements(self, by, selector, element=None):
-        logger.debug("Finde mehrere Elemente [%s=%s]", by, selector)
+        logger.info("Finde mehrere Elemente [%s=%s]", by, selector)
         if element is not None:
             return element.find_elements(STRATEGY_MAP[by], selector)
         return self.driver.find_elements(STRATEGY_MAP[by], selector)
@@ -190,8 +190,11 @@ class SeleniumClient:
             return self.driver.find_element(STRATEGY_MAP[by], selector)
         return element.find_element(STRATEGY_MAP[by], selector)
 
-    def execute_script(self, execute_script):
-        self.driver.execute_script(execute_script)
+    def execute_script(self, execute_script, element=None):
+        if element is not None:
+            self.driver.execute_script(execute_script, element)
+        else:
+            self.driver.execute_script(execute_script)
 
     def upload_file(self, element, by, selector, path):
         logger.info("Lade Datei hoch: %s", path)
