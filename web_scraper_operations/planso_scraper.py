@@ -706,7 +706,7 @@ class PlanSoMain:
             logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
             return []
     
-    def check_sparepart_boxes(self, positions=[]):
+    def check_sparepart_boxes(self, positions=None):
         try:
             logger.info("checke Ersatzteil check boxen")
             time.sleep(1)
@@ -746,15 +746,19 @@ class PlanSoMain:
                         selector=self._config.teile_tabelle.part_nr,
                         element=row,
                     ).get_attribute("data-prtnumber")
-                    if (part_name in positions or part_number in positions) or positions == []:
+                    
+                    run = False
+                    if positions is None:
+                        run = True
+                    elif part_name in positions or part_number in positions:
+                        run = True
+                    if run:
                         checkbox = self._selenium_client.find_element(
                         by=self._config.teile_tabelle.price_checkbox.locator_strategie,
                         selector=self._config.teile_tabelle.price_checkbox.selector,
                         element=row,
                         )
-                        logger.info(f"Found checkbox: {checkbox}")
                         time.sleep(0.5)
-                        print(f"checkbox.is_selected(): {checkbox.is_selected()}")
                         if not checkbox.is_selected():
                             logger.info(f"checking price_checkbox for {part_name}")
 

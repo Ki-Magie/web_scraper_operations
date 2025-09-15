@@ -115,11 +115,11 @@ def planso_invoice_positions_flow(
 def planso_spareparts_ok(
     search_field_name: str,
     search_string: str,
-    positions: list,
     username: str,
     password: str,
     table: str ='',
     orga_list_id: str = '',
+    positions: str = None,
     base_url: str = None,
     config: str = None,
     client: str = "jvg",
