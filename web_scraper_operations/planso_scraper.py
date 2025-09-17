@@ -298,7 +298,7 @@ class PlanSoMain:
             field_name,
             search_string,
         )
-        wait_time = 1
+        wait_time = 3
         self._config.selenium.search_field.selector = (
             self._config.selenium.search_field.selector.replace(
                 "SEARCH_FIELD_STRING", field_name
@@ -582,75 +582,110 @@ class PlanSoMain:
                 logger.debug("lese data_pnum")
                 part["data_pnum"] = row.get_attribute("data-pnum")
                 logger.debug("lese name")
-                part["name"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.name,
-                    element=row,
-                ).text.strip()
+                try:
+                    part["name"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.name,
+                        element=row,
+                    ).text.strip()
+                except:
+                    part["name"] = None
                 logger.debug("lese part_number")
-                part["part_number"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.part_nr,
-                    element=row,
-                ).get_attribute("data-prtnumber")
+                try:
+                    part["part_number"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.part_nr,
+                        element=row,
+                    ).get_attribute("data-prtnumber")
+                except:
+                    part["part_number"] = None
                 logger.debug("lese price")
-                part["price"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.price,
-                    element=row,
-                ).text.strip()
+                try:
+                    part["price"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.price,
+                        element=row,
+                    ).text.strip()
+                except:
+                    part["price"] = None
                 logger.debug("lese quantity")
-                part["quantity"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.quantity,
-                    element=row,
-                ).text.strip()
+                try:
+                    part["quantity"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.quantity,
+                        element=row,
+                    ).text.strip()
+                except:
+                    part["quantity"] = None
                 logger.debug("lese total_price")
-                part["total_price"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.total_price,
-                    element=row,
-                ).text.strip()
+                try:
+                    part["total_price"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.total_price,
+                        element=row,
+                    ).text.strip()
+                except:
+                    part["total_price"] = None
                 logger.debug("lese bestellt")
-                part["bestellt"] = (
-                    self._selenium_client.find_element(
-                        by=self._config.teile_tabelle.locator_strategie,
-                        selector=self._config.teile_tabelle.bestellt,
-                        element=row,
-                    ).get_attribute("checked")
-                    is not None
-                )
+                try:
+                    part["bestellt"] = (
+                        self._selenium_client.find_element(
+                            by=self._config.teile_tabelle.locator_strategie,
+                            selector=self._config.teile_tabelle.bestellt,
+                            element=row,
+                        ).get_attribute("checked")
+                        is not None
+                    )
+                except:
+                    part["bestellt"] = None
                 logger.debug("lese delivered")
-                part["delivered"] = (
-                    self._selenium_client.find_element(
-                        by=self._config.teile_tabelle.locator_strategie,
-                        selector=self._config.teile_tabelle.delivered,
-                        element=row,
-                    ).get_attribute("checked")
-                    is not None
-                )
+                try:
+                    part["delivered"] = (
+                        self._selenium_client.find_element(
+                            by=self._config.teile_tabelle.locator_strategie,
+                            selector=self._config.teile_tabelle.delivered,
+                            element=row,
+                        ).get_attribute("checked")
+                        is not None
+                    )
+                except:
+                    part["delivered"] = None
                 logger.debug("lese status")
-                part["status"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.status,
-                    element=row,
-                ).get_attribute("title")
+                try:
+                    part["status"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.status,
+                        element=row,
+                    ).get_attribute("title")
+                except:
+                    part["status"]=None
                 logger.debug("lese bestelldatum")
-                part["bestelldatum"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.bestelldatum,
-                    element=row,
-                ).text.strip()
+                try:
+                    part["bestelldatum"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.bestelldatum,
+                        element=row,
+                    ).text.strip()
+                except:
+                    part["bestelldatum"] = None
                 logger.debug("lese project_num")
-                part["project_num"] = self._selenium_client.find_element(
-                    by=self._config.teile_tabelle.locator_strategie,
-                    selector=self._config.teile_tabelle.project_num,
-                    element=row,
-                ).text.strip()
-
+                try:
+                    part["project_num"] = self._selenium_client.find_element(
+                        by=self._config.teile_tabelle.locator_strategie,
+                        selector=self._config.teile_tabelle.project_num,
+                        element=row,
+                    ).text.strip()
+                except:
+                    part["project_num"] = None
+                logger.debug(f"part: {part}")
                 parts_data.append(part)
 
-            logger.info(f"ersatzteile gedunden: {parts_data}")
+            num = []
+            for p in parts_data:
+                if not p["project_num"] in num:
+                    num.append(p["project_num"])
+
+            logger.debug(f"ersatzteile gedunden: {parts_data}")
             
             # Gesamtpreis und ersatzteile_summe
             try:
@@ -663,21 +698,22 @@ class PlanSoMain:
             
             gesamtpreis = None
             ersatzteile_summe = None
-            try:
-                first_row = self._selenium_client.find_elements(
-                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
-                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_tr,
-                    element=table
-                )[0]
-                ersatzteile_summe_td = self._selenium_client.find_elements(
-                    by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
-                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_td,
-                    element=first_row
-                )[1]
-                ersatzteile_summe = ersatzteile_summe_td.text.replace("€", "").replace(",", ".").strip()
-            except Exception as e:
-                logger.warning(f"Ersatzteile Summe konnte nicht ausgelesen werden: {e}")
-            parts_data.append({"ersatzteile_summe": ersatzteile_summe})
+            for i, auftragsnummer in enumerate(num):
+                try:
+                    first_row = self._selenium_client.find_elements(
+                        by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
+                        selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_tr,
+                        element=table
+                    )[i]
+                    ersatzteile_summe_td = self._selenium_client.find_elements(
+                        by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
+                        selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_td,
+                        element=first_row
+                    )[1]
+                    ersatzteile_summe = ersatzteile_summe_td.text.replace("€", "").replace(",", ".").strip()
+                except Exception as e:
+                    logger.warning(f"Ersatzteile Summe konnte nicht ausgelesen werden: {e}")
+                parts_data.append({f"{auftragsnummer} ersatzteile_summe": ersatzteile_summe})
 
             try:
                 last_row = self._selenium_client.find_elements(
@@ -698,8 +734,6 @@ class PlanSoMain:
             except Exception as e:
                 logger.warning(f"Gesamtpreis konnte nicht ausgelesen werden: {e}")
             parts_data.append({"gesamtpreis": gesamtpreis})
-
-
 
             return parts_data
         except Exception as e:
