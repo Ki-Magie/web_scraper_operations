@@ -740,7 +740,7 @@ class PlanSoMain:
             logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
             return []
     
-    def check_sparepart_boxes(self, positions=None):
+    def check_sparepart_boxes(self, positions: list=None):
         try:
             logger.info("checke Ersatzteil check boxen")
             time.sleep(1)

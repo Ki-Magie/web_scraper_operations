@@ -119,7 +119,7 @@ def planso_spareparts_ok(
     password: str,
     table: str ='',
     orga_list_id: str = '',
-    positions: str = None,
+    positions: list = None,
     base_url: str = None,
     config: str = None,
     client: str = "jvg",
