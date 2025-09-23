@@ -178,6 +178,13 @@ class SeleniumClient:
             EC.presence_of_element_located((STRATEGY_MAP[by], selector))
         )
 
+    def wait_unil_presence_located(self, by, selector):
+        return self.wait.until(
+            EC.presence_of_all_elements_located(
+                (STRATEGY_MAP[by], selector)
+            )
+        )
+
     def find_elements(self, by, selector, element=None):
         logger.info("Finde mehrere Elemente [%s=%s]", by, selector)
         if element is not None:

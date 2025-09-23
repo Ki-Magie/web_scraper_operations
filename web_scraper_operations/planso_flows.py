@@ -119,13 +119,15 @@ def planso_spareparts_ok(
     password: str,
     table: str ='',
     orga_list_id: str = '',
-    positions: list = None,
+    positions: str = '',
     base_url: str = None,
     config: str = None,
     client: str = "jvg",
     headless_mode:bool = True):
     """
-    if positions list is empty [], all positions get checked
+    if positions string is '', all positions get checked
+    positions = "Positin1;posisiton2" Semilcolon separated
+
     """
     logger.info("Starte Invoice Flow")
 
@@ -156,3 +158,50 @@ def planso_spareparts_ok(
     time.sleep(0.5)
     planso.logout()
     return {"parts": result}
+
+def planso_trash_documents(
+    field_name: str,
+    search_field_name: str,
+    search_string: str,
+    username: str,
+    password: str,
+    table: str,
+    table_name: str,
+    base_url: str = None,
+    config: str = None,
+    client: str = "jvg",
+    headless_mode:bool = True
+    ):
+    """
+    Vollständiger Ablauf zum löschen der Dokumente
+    """
+    logger.info("Starte planso_trash_documents")
+
+    planso = planso = PlanSoMain(
+        username=username, 
+        password=password, 
+        table=table, 
+        table_name=table_name,
+        base_url=base_url,
+        config=config,
+        client=client,
+        headless_mode=headless_mode
+        )
+
+    planso.open_base_url()
+    planso.login()
+    planso.open_navigation()
+    planso.open_table()
+    time.sleep(1)
+
+    logger.debug("Suche Zielzeile für den Upload...")
+
+    # verwendet die Suchfunktion von planso:
+    row_info = planso.find_element_with_search(search_field_name, search_string)
+    logger.info("row found: '%s'", row_info)
+
+    if row_info is not None:
+        logger.debug("Starte trash...")
+        planso.open_dialog(row_info, field_name)
+    time.sleep(5)
+    planso.logout()

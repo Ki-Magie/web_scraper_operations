@@ -142,6 +142,53 @@ class PlanSoMain:
 
     def open_base_url(self):
         self.open_url(url=self._config.base_url)
+    
+    def open_dialog(self, row_info, target_field="Dokumente"):
+        self._config.file_upload.selector = self._config.file_upload.selector.replace(
+            "SEARCH_FIELD_STRING", target_field
+        )
+        try:
+            self.set_page(row_info["page"])
+            rows = self._selenium_client.find_elements(
+                by=self._config.selenium.rows_of_table.locator_strategie,
+                selector=self._config.selenium.rows_of_table.selector,
+            )
+            target_field_idx = -1
+            for idx, row in enumerate(rows):
+                if idx == 1 and target_field_idx == -1:
+                    tds = self._selenium_client.find_elements(
+                        by=self._config.selenium.field_count.locator_strategie,
+                        selector=self._config.selenium.field_count.selector,
+                        element=row,
+                    )
+                    for i, td in enumerate(tds):
+                        td_id = td.get_attribute("aria-describedby")
+                        if td_id == getattr(self._config.table_fields, target_field):
+                            target_field_idx = i + 1
+                            logger.debug(
+                                "Feld '%s' hat Index %d", target_field, target_field_idx
+                            )
+
+                if row_info["plate"] in row.text:
+                    logger.debug("Klicke trash")
+                    dialog_cell = row.find_element(
+                        self._config.selenium.upload_cell_prepare.locator_strategie,
+                        self._config.selenium.upload_cell_prepare.selector
+                        + f"[{target_field_idx}]",
+                    )
+                    dialog_cell.click()
+                    time.sleep(1)
+                    break
+        except Exception as e:
+            logger.error("Trash fehlgeschlagen: %s", str(e))
+    
+#     def get_files_in_dialog(self):
+#         rows = self._selenium_client.wait_unil_presence_located(
+#             by=
+#             selector=
+#         )
+# "ul#images_sortable > li.images_draggable"
+
 
     def upload_file(self, path, row_info, target_field="Dokumente"):
         logger.info("Starte Datei-Upload für Ziel-Feld: %s", target_field)
@@ -298,7 +345,7 @@ class PlanSoMain:
             field_name,
             search_string,
         )
-        wait_time = 3
+        wait_time = 1
         self._config.selenium.search_field.selector = (
             self._config.selenium.search_field.selector.replace(
                 "SEARCH_FIELD_STRING", field_name
@@ -434,7 +481,8 @@ class PlanSoMain:
                 by=self._config.selenium.table_name.locator_strategie,
                 selector=self._config.selenium.table_name.selector,
             )
-            self._wait_for_table()
+            # self._wait_for_table()
+            time.speep(1)
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
             return False
@@ -454,22 +502,26 @@ class PlanSoMain:
 
     def open_details(self, row_nr):
         try:
+            wait = 1
             logger.info("Öffne Details...")
             self._selenium_client.wait_for_visibility(
                 by=self._config.selenium.details_button.locator_strategie,
                 selector=self._config.selenium.details_button.selector_row
                 + f"[{row_nr}]",
             )
+            time.sleep(wait)
             row = self._selenium_client.find_element(
                 by=self._config.selenium.details_button.locator_strategie,
                 selector=self._config.selenium.details_button.selector_row
                 + f"[{row_nr}]",
             )
+            time.sleep(wait)
             self._selenium_client.click(
                 by=self._config.selenium.details_button.locator_strategie,
                 selector=self._config.selenium.details_button.selector,
                 element=row,
             )
+            time.sleep(wait)
             # self._wait_for_table()
         except Exception as e:
             logger.error("Details öffnen fehlgeschlagen: %s", str(e))
@@ -740,7 +792,7 @@ class PlanSoMain:
             logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
             return []
     
-    def check_sparepart_boxes(self, positions: list=None):
+    def check_sparepart_boxes(self, positions: str=''):
         try:
             logger.info("checke Ersatzteil check boxen")
             time.sleep(1)
@@ -748,6 +800,7 @@ class PlanSoMain:
             #     by=self._config.selenium.teile_elements.locator_strategie,
             #     selector=self._config.selenium.teile_elements.selector,
             # )
+            pos_array = positions.split(';') if positions else []
             logger.info("wait_for_all_elements")
             rows, matched_selector = self._selenium_client.wait_for_all_elements(
                 by=[
@@ -782,9 +835,11 @@ class PlanSoMain:
                     ).get_attribute("data-prtnumber")
                     
                     run = False
-                    if positions is None:
+                    if pos_array == []:
                         run = True
-                    elif part_name in positions or part_number in positions:
+                    elif part_number in pos_array:
+                        run = True
+                    elif part_name in pos_array:
                         run = True
                     if run:
                         checkbox = self._selenium_client.find_element(
