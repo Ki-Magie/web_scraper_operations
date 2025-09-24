@@ -857,6 +857,8 @@ class PlanSoMain:
                             """, checkbox)
                             # checkbox.click()
                             checked[part_name] = "checked"
+                        else:
+                            checked[part_name] = "already checked"
                 except Exception as e:
                     logger.warning(f"checkbox checken fehlgeschlagen: {e}")
 
