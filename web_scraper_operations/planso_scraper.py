@@ -482,7 +482,7 @@ class PlanSoMain:
                 selector=self._config.selenium.table_name.selector,
             )
             # self._wait_for_table()
-            time.speep(1)
+            time.sleep(1)
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
             return False
