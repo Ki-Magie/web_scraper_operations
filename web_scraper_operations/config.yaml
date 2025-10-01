@@ -29,6 +29,9 @@ jvg:
     login_submit_button:
       selector: "ps_system_login"
       locator_strategie: "id"
+    wait_popup:
+      selector: "popup_overlay"
+      locator_strategie: "id"
     navigation:
       selector: "//h3[contains(., 'Navigation')]"
       locator_strategie: "xpath"

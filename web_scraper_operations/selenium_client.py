@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException
+from selenium.common.exceptions import ElementClickInterceptedException, TimeoutException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
@@ -222,3 +222,27 @@ class SeleniumClient:
             self.driver.quit()
         finally:
             shutil.rmtree(self._profile_dir, ignore_errors=True)
+
+    def wait_for_overlay_to_disappear(self, by, selector, timeout=30):
+        """
+        Wartet darauf, dass das Popup-Overlay (#popup_overlay) verschwindet.
+        
+        :param driver: Selenium WebDriver
+        :param timeout: maximale Wartezeit in Sekunden
+        :return: True wenn Overlay verschwunden ist, False wenn Timeout
+        """
+        overlay_locator = (STRATEGY_MAP[by], selector)
+
+        try:
+            WebDriverWait(self.driver, timeout).until(
+                EC.invisibility_of_element(overlay_locator)
+            )
+            logger.debug("overlay ist jetzt verschwunden")
+            return True
+        except TimeoutException:
+            logger.warning(f"Overlay war nach {timeout} Sekunden noch sichtbar.")
+            return False
+        except NoSuchElementException:
+            # Overlay war gar nicht da
+            logger.debug("overlay war nicht da")
+            return True

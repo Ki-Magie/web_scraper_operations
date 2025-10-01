@@ -123,6 +123,13 @@ class PlanSoMain:
                 self._config.selenium.preload_video.selector,
             )
 
+            time.sleep(1)
+            logging.debug("Warte dass popup verschwindet")
+            self._selenium_client.wait_for_overlay_to_disappear(
+                by=self._config.selenium.wait_popup.locator_strategie,
+                selector=self._config.selenium.wait_popup.selector
+            )
+
             logger.info("Login erfolgreich.")
             return True
 
@@ -471,7 +478,7 @@ class PlanSoMain:
                 selector=self._config.selenium.schnellzugriff.selector,
             )
         except Exception as e:
-            logger.error("Navigation öffnen fehlgeschlagen: %s", str(e))
+            logger.error("Schnellzugriff öffnen fehlgeschlagen: %s", str(e))
             return False
 
     def open_table(self):
