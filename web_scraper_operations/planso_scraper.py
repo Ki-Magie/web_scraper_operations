@@ -263,11 +263,13 @@ class PlanSoMain:
                         selector=self._config.selenium.upload_dialog_alert.selector,
                     )
 
-                    logger.info("Datei erfolgreich hochgeladen.")
+                    logger.info(f"Datei erfolgreich hochgeladen, warte auf unsichtbarkeit von {self._config.selenium.wait_for_upload.selector} und klicke dann auf {self._config.selenium.upload_dialog_close.selector}")
+                    time.sleep(1)
                     self._selenium_client.wait_for_invisibility(
                         by=self._config.selenium.wait_for_upload.locator_strategie,
                         selector=self._config.selenium.wait_for_upload.selector,
                     )
+                    time.sleep(1)
                     self._selenium_client.safe_click(
                         by=self._config.selenium.upload_dialog_close.locator_strategie,
                         selector=self._config.selenium.upload_dialog_close.selector,

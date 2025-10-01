@@ -83,7 +83,7 @@ class SeleniumClient:
         )
         button.click()
 
-    def safe_click(self, by, selector, timeout=10):
+    def safe_click(self, by, selector, timeout=15):
         end_time = time.time() + timeout
         while time.time() < end_time:
             try:
@@ -92,7 +92,10 @@ class SeleniumClient:
             except ElementClickInterceptedException:
                 # Etwas blockiert den Klick – kurz warten und nochmal versuchen
                 time.sleep(0.5)
-        raise Exception(f"Konnte Element {selector} nicht klicken – immer blockiert")
+        try:
+            self.click(by, selector)
+        except Exception as e:
+            logger.error(f"Konnte Element {selector} nicht klicken – immer blockiert. Error: {e}")
 
     def set_select_element(self, by, selector, value: str):
         logger.info("Setze Select-Element [%s=%s] auf Wert '%s'", by, selector, value)
