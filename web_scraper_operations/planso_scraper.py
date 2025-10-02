@@ -929,10 +929,11 @@ class PlanSoMain:
 
     def _wait_for_orga_list(self):
         logger.debug("Warte auf das Laden der Orga Liste...")
-        self._selenium_client.wait_for_visibility(
-            self._config.selenium.load_table_indicator.locator_strategie,
-            self._config.selenium.load_table_indicator.selector,
-        )
+        # self._selenium_client.wait_for_visibility(
+        #     self._config.selenium.load_table_indicator.locator_strategie,
+        #     self._config.selenium.load_table_indicator.selector,
+        # ) das hier führt manchmal zu fehlern.
+        time.sleep(1)
         self._selenium_client.wait_for_invisibility(
             self._config.selenium.load_table_indicator.locator_strategie,
             self._config.selenium.load_table_indicator.selector,

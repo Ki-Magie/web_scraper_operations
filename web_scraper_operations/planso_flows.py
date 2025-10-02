@@ -129,7 +129,7 @@ def planso_spareparts_ok(
     positions = "Positin1;posisiton2" Semilcolon separated
 
     """
-    logger.info("Starte Invoice Flow")
+    logger.info("Starte planso_spareparts_ok Flow")
 
     planso = PlanSoMain(
         username=username, 
