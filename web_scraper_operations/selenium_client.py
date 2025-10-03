@@ -222,6 +222,8 @@ class SeleniumClient:
     def quit(self):
         logger.info("Beende WebDriver")
         try:
+            self.driver.close()
+            time.sleep(0.5)
             self.driver.quit()
         finally:
             shutil.rmtree(self._profile_dir, ignore_errors=True)

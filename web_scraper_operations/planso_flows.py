@@ -37,35 +37,40 @@ def planso_upload_flow(
         headless_mode=headless_mode
         )
 
-    planso.open_base_url()
-    planso.login()
-    planso.open_navigation()
-    planso.open_table()
-    time.sleep(1)
+    try:
+        planso.open_base_url()
+        planso.login()
+        planso.open_navigation()
+        planso.open_table()
+        time.sleep(1)
 
-    logger.debug("Suche Zielzeile für den Upload...")
-    # self.set_page_size(self._page_size)
+        logger.debug("Suche Zielzeile für den Upload...")
+        # self.set_page_size(self._page_size)
 
-    # Lädt JEDE seite und schaut ob element da:
-    # row_info = self.find_element(search_field_name, search_string)
+        # Lädt JEDE seite und schaut ob element da:
+        # row_info = self.find_element(search_field_name, search_string)
 
-    # verwendet die Suchfunktion von planso:
-    row_info = planso.find_element_with_search(search_field_name, search_string)
-    logger.info("row found: '%s'", row_info)
+        # verwendet die Suchfunktion von planso:
+        row_info = planso.find_element_with_search(search_field_name, search_string)
+        logger.info("row found: '%s'", row_info)
 
-    if row_info is not None:
-        logger.debug("Starte Datei-Upload...")
-        status = planso.upload_file(path, row_info, field_name)
-        logger.info("return of status '%s'", status)
-        logger.debug("Schließe Upload-Dialog...")
-    else:
-        status = f"{search_string} ist nicht im Feld {search_field_name}"
-    time.sleep(0.5)
-    planso.logout()
-    logger.info("Upload-Flow abgeschlossen.")
-
-    return {"message": status}
-
+        if row_info:
+            logger.debug("Starte Datei-Upload...")
+            status = planso.upload_file(path, row_info, field_name)
+            logger.info("return of status '%s'", status)
+            logger.debug("Schließe Upload-Dialog...")
+        else:
+            status = f"{search_string} ist nicht im Feld {search_field_name}"
+        return {"message": status}
+    except Exception as e:
+        logger.exception("Error im planso_upload_flow")
+        return {"error": "Error im planso_upload_flow"}
+    finally:
+        try:
+            planso.logout()
+        except Exception:
+            logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+        time.sleep(0.3)
 
 def planso_invoice_positions_flow(
     search_field_name: str,
@@ -94,23 +99,29 @@ def planso_invoice_positions_flow(
         client=client,
         headless_mode=headless_mode
         )
-    planso.open_base_url()
-    planso.login()
-    planso.open_schnellzugriff()
-    planso.open_orga_list()
-    time.sleep(1)
-    logger.debug("Suche Zielzeile für Details...")
-    row_info = planso.find_element_with_search(search_field_name, search_string)
-    logger.info("row found: '%s'", row_info)
+    try:
+        planso.open_base_url()
+        planso.login()
+        planso.open_schnellzugriff()
+        planso.open_orga_list()
+        time.sleep(1)
+        logger.debug("Suche Zielzeile für Details...")
+        row_info = planso.find_element_with_search(search_field_name, search_string)
+        logger.info("row found: '%s'", row_info)
 
-    planso.open_details(row_nr=row_info["Zeile"])
-    planso.open_teile()
-    teile_info = planso.get_teile_info() # inkl gesamtpreis
-
-    time.sleep(0.5)
-    planso.logout()
-
-    return {"parts": teile_info}
+        planso.open_details(row_nr=row_info["Zeile"])
+        planso.open_teile()
+        teile_info = planso.get_teile_info()  # inkl. Gesamtpreis
+        return {"parts": teile_info}
+    except Exception as e:
+        logger.exception("Error im planso_invoice_positions_flow")
+        return {"Error": "Error im planso_invoice_positions_flow"}
+    finally:
+        try:
+            planso.logout()
+        except Exception:
+            logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+        time.sleep(0.3)
 
 def planso_spareparts_ok(
     search_field_name: str,
@@ -141,23 +152,31 @@ def planso_spareparts_ok(
         client=client,
         headless_mode=headless_mode
         )
-    planso.open_base_url()
-    planso.login()
-    planso.open_schnellzugriff()
-    planso.open_orga_list()
-    time.sleep(1)
-    logger.debug("Suche Zielzeile für Details...")
-    row_info = planso.find_element_with_search(search_field_name, search_string)
-    logger.info("row found: '%s'", row_info)
-    planso.open_details(row_nr=row_info["Zeile"])
-    planso.open_teile()
+    try:
+        planso.open_base_url()
+        planso.login()
+        planso.open_schnellzugriff()
+        planso.open_orga_list()
+        time.sleep(1)
+        logger.debug("Suche Zielzeile für Details...")
+        row_info = planso.find_element_with_search(search_field_name, search_string)
+        logger.info("row found: '%s'", row_info)
+        planso.open_details(row_nr=row_info["Zeile"])
+        planso.open_teile()
 
-    # check boxes
-    result = planso.check_sparepart_boxes(positions=positions)
-
-    time.sleep(0.5)
-    planso.logout()
-    return {"parts": result}
+        # check boxes
+        result = planso.check_sparepart_boxes(positions=positions)
+        return {"parts": result}
+    except Exception as e:
+        logger.exception("Error im planso_spareparts_ok")
+        return {"Error": "Error im planso_spareparts_ok"}
+    finally:
+        try:
+            planso.logout()
+        except Exception:
+            logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")#
+        time.sleep(0.3)
+    
 
 def planso_trash_documents(
     field_name: str,
@@ -187,21 +206,28 @@ def planso_trash_documents(
         client=client,
         headless_mode=headless_mode
         )
+    try:
+        planso.open_base_url()
+        planso.login()
+        planso.open_navigation()
+        planso.open_table()
+        time.sleep(1)
 
-    planso.open_base_url()
-    planso.login()
-    planso.open_navigation()
-    planso.open_table()
-    time.sleep(1)
+        logger.debug("Suche Zielzeile für den Upload...")
 
-    logger.debug("Suche Zielzeile für den Upload...")
+        # verwendet die Suchfunktion von planso:
+        row_info = planso.find_element_with_search(search_field_name, search_string)
+        logger.info("row found: '%s'", row_info)
 
-    # verwendet die Suchfunktion von planso:
-    row_info = planso.find_element_with_search(search_field_name, search_string)
-    logger.info("row found: '%s'", row_info)
-
-    if row_info is not None:
-        logger.debug("Starte trash...")
-        planso.open_dialog(row_info, field_name)
-    time.sleep(5)
-    planso.logout()
+        if row_info is not None:
+            logger.debug("Starte trash...")
+            planso.open_dialog(row_info, field_name)
+    except Exception as e:
+        logger.exception("Error im planso_trash_documents")
+        return
+    finally:
+        try:
+            planso.logout()
+        except Exception:
+            logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")#
+        time.sleep(0.3)

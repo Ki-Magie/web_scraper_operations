@@ -139,10 +139,14 @@ class PlanSoMain:
 
     def logout(self):
         logger.info("Führe Logout durch...")
-        self._selenium_client.open_url(url=self._config.logout_url)
-        time.sleep(0.5)
-        logger.info("Schließe Client")
-        self._selenium_client.quit()
+        try:
+            self._selenium_client.open_url(url=self._config.logout_url)
+            time.sleep(0.5)
+            logger.info("Schließe Client")
+        except:
+            logger.error("Problem beim ausloggen...")
+        finally:
+            self._selenium_client.quit()
 
     def open_url(self, url):
         self._selenium_client.open_url(url=url)
@@ -929,11 +933,15 @@ class PlanSoMain:
 
     def _wait_for_orga_list(self):
         logger.debug("Warte auf das Laden der Orga Liste...")
-        # self._selenium_client.wait_for_visibility(
-        #     self._config.selenium.load_table_indicator.locator_strategie,
-        #     self._config.selenium.load_table_indicator.selector,
-        # ) das hier führt manchmal zu fehlern.
-        time.sleep(1)
+        try:
+            self._selenium_client.wait_for_visibility(
+                self._config.selenium.load_table_indicator.locator_strategie,
+                self._config.selenium.load_table_indicator.selector,
+            )
+        except Exception as e:
+            logger.warning(f"in _wait_for_orga_list ist load_table_indicator nicht sichtbar geworden: {e}")
+
+        time.sleep(0.1)
         self._selenium_client.wait_for_invisibility(
             self._config.selenium.load_table_indicator.locator_strategie,
             self._config.selenium.load_table_indicator.selector,
