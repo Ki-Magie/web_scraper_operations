@@ -29,8 +29,9 @@ STRATEGY_MAP = {
 
 class SeleniumClient:
     def __init__(self, headless=True):
+        logger.info("------ Initialisiere SeleniumClient '%s', (headless=%s) ------", self._profile_dir, headless)
         self._profile_dir = tempfile.mkdtemp(prefix="selenium_profile_")
-        logger.info("Initialisiere SeleniumClient '%s', (headless=%s)", self._profile_dir, headless)
+        
         
         self._webdriver_wait = 60 # seconds unil timeout
 
@@ -98,13 +99,13 @@ class SeleniumClient:
             logger.error(f"Konnte Element {selector} nicht klicken – immer blockiert. Error: {e}")
 
     def set_select_element(self, by, selector, value: str):
-        logger.info("Setze Select-Element [%s=%s] auf Wert '%s'", by, selector, value)
+        logger.debug("Setze Select-Element [%s=%s] auf Wert '%s'", by, selector, value)
         select_element = self.wait.until(
             EC.presence_of_element_located((STRATEGY_MAP[by], selector))
         )
         select = Select(select_element)
         select.select_by_value(value)
-        logger.info("OK")
+        logger.debug("OK")
 
     def get_select_element(self, by, selector):
         logger.debug("Lese ausgewählten Wert aus Select-Element [%s=%s]", by, selector)
@@ -133,7 +134,7 @@ class SeleniumClient:
         ---------
         list[WebElement] | (list[WebElement], int) | []
         """
-        logger.info("Warte auf alle Elemente [%s, %s]", by, selector)
+        logger.debug("Warte auf alle Elemente [%s, %s]", by, selector)
 
         # Typvalidierung
         if isinstance(by, str) and isinstance(selector, str):
@@ -158,7 +159,7 @@ class SeleniumClient:
             logger.warning("Timeout beim Warten auf Elemente: %s", selector)
             return ([], -1) if return_status else []
 
-        logger.info("Gefundene Elemente: %d (Selector: %s)", len(elements), selector[matched_index])
+        logger.debug("Gefundene Elemente: %d (Selector: %s)", len(elements), selector[matched_index])
         return (elements, matched_index) if return_status else elements
 
     def wait_for_element(self, by, selector):
@@ -166,7 +167,7 @@ class SeleniumClient:
         self.wait.until(EC.presence_of_element_located((STRATEGY_MAP[by], selector)))
 
     def wait_for_visibility(self, by, selector):
-        logger.info("Warte auf Sichtbarkeit von [%s=%s]", by, selector)
+        logger.debug("Warte auf Sichtbarkeit von [%s=%s]", by, selector)
         self.wait.until(EC.visibility_of_element_located((STRATEGY_MAP[by], selector)))
 
     def wait_for_invisibility(self, by, selector):
@@ -189,7 +190,7 @@ class SeleniumClient:
         )
 
     def find_elements(self, by, selector, element=None):
-        logger.info("Finde mehrere Elemente [%s=%s]", by, selector)
+        logger.debug("Finde mehrere Elemente [%s=%s]", by, selector)
         if element is not None:
             return element.find_elements(STRATEGY_MAP[by], selector)
         return self.driver.find_elements(STRATEGY_MAP[by], selector)
@@ -207,7 +208,7 @@ class SeleniumClient:
             self.driver.execute_script(execute_script)
 
     def upload_file(self, element, by, selector, path):
-        logger.info("Lade Datei hoch: %s", path)
+        logger.debug("Lade Datei hoch: %s", path)
         file_input = WebDriverWait(element, self._webdriver_wait).until(
             EC.presence_of_element_located((STRATEGY_MAP[by], selector))
         )

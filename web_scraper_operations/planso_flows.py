@@ -52,12 +52,12 @@ def planso_upload_flow(
 
         # verwendet die Suchfunktion von planso:
         row_info = planso.find_element_with_search(search_field_name, search_string)
-        logger.info("row found: '%s'", row_info)
+        logger.dbug("row found: '%s'", row_info)
 
         if row_info:
             logger.debug("Starte Datei-Upload...")
             status = planso.upload_file(path, row_info, field_name)
-            logger.info("return of status '%s'", status)
+            logger.debug("return of status '%s'", status)
             logger.debug("Schließe Upload-Dialog...")
         else:
             status = f"{search_string} ist nicht im Feld {search_field_name}"
@@ -107,7 +107,7 @@ def planso_invoice_positions_flow(
         time.sleep(1)
         logger.debug("Suche Zielzeile für Details...")
         row_info = planso.find_element_with_search(search_field_name, search_string)
-        logger.info("row found: '%s'", row_info)
+        logger.debug("row found: '%s'", row_info)
 
         planso.open_details(row_nr=row_info["Zeile"])
         planso.open_teile()
@@ -160,7 +160,7 @@ def planso_spareparts_ok(
         time.sleep(1)
         logger.debug("Suche Zielzeile für Details...")
         row_info = planso.find_element_with_search(search_field_name, search_string)
-        logger.info("row found: '%s'", row_info)
+        logger.debug("row found: '%s'", row_info)
         planso.open_details(row_nr=row_info["Zeile"])
         planso.open_teile()
 
@@ -217,7 +217,7 @@ def planso_trash_documents(
 
         # verwendet die Suchfunktion von planso:
         row_info = planso.find_element_with_search(search_field_name, search_string)
-        logger.info("row found: '%s'", row_info)
+        logger.debug("row found: '%s'", row_info)
 
         if row_info is not None:
             logger.debug("Starte trash...")

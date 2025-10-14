@@ -322,7 +322,7 @@ class PlanSoMain:
                             field_idx = i
 
                 if search_string in row.text:
-                    logger.info(
+                    logger.debug(
                         "'%s' wurde auf seite '%s' in Zeilenindex '%s' gefunden.",
                         search_string,
                         page,
@@ -369,7 +369,7 @@ class PlanSoMain:
         )
 
         # ----- such operator setzen
-        logger.info("setze den such operator auf 'ist gleich'")
+        logger.debug("setze den such operator auf 'ist gleich'")
         time.sleep(wait_time)
         self._selenium_client.wait_for_element(
             self._config.selenium.search_field.locator_strategie,
@@ -430,7 +430,7 @@ class PlanSoMain:
                         field_idx = i
 
             if search_string in row.text:
-                logger.info(
+                logger.debug(
                     "'%s' wurde auf seite '%s' in Zeilenindex '%s' gefunden.",
                     search_string,
                     page,
@@ -507,7 +507,7 @@ class PlanSoMain:
                 by=self._config.selenium.orga_list.locator_strategie,
                 selector=self._config.selenium.orga_list.selector,
             )
-            logger.info("Warte auf Orga Liste...")
+            logger.debug("Warte auf Orga Liste...")
             self._wait_for_orga_list()
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
@@ -814,7 +814,7 @@ class PlanSoMain:
             #     selector=self._config.selenium.teile_elements.selector,
             # )
             pos_array = positions.split(';') if positions else []
-            logger.info("wait_for_all_elements")
+            logger.debug("wait_for_all_elements")
             rows, matched_selector = self._selenium_client.wait_for_all_elements(
                 by=[
                     self._config.selenium.teile_elements.locator_strategie,
@@ -834,13 +834,13 @@ class PlanSoMain:
             checked = {}
             for row in rows:
                 try:
-                    logger.info("lese name")
+                    logger.debug("lese name")
                     part_name = self._selenium_client.find_element(
                         by=self._config.teile_tabelle.locator_strategie,
                         selector=self._config.teile_tabelle.name,
                         element=row,
                     ).text.strip()
-                    logger.info("lese part_number")
+                    logger.debug("lese part_number")
                     part_number = self._selenium_client.find_element(
                         by=self._config.teile_tabelle.locator_strategie,
                         selector=self._config.teile_tabelle.part_nr,
