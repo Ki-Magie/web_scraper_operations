@@ -29,8 +29,8 @@ STRATEGY_MAP = {
 
 class SeleniumClient:
     def __init__(self, headless=True):
-        logger.info("------ Initialisiere SeleniumClient '%s', (headless=%s) ------", self._profile_dir, headless)
         self._profile_dir = tempfile.mkdtemp(prefix="selenium_profile_")
+        logger.info("------ Initialisiere SeleniumClient '%s', (headless=%s) ------", self._profile_dir, headless)
         
         
         self._webdriver_wait = 60 # seconds unil timeout
