@@ -52,7 +52,7 @@ def planso_upload_flow(
 
         # verwendet die Suchfunktion von planso:
         row_info = planso.find_element_with_search(search_field_name, search_string)
-        logger.dbug("row found: '%s'", row_info)
+        logger.debug("row found: '%s'", row_info)
 
         if row_info:
             logger.debug("Starte Datei-Upload...")
