@@ -44,6 +44,9 @@ jvg:
     table_name:
       selector: 'a[title="TABLE_NAME"]'
       locator_strategie: "css"
+    blocks_table_sometimes:
+      selector: "main_left_menu_wrapper"
+      locator_strategie: "id"
     load_table_indicator:
       selector: "load_baymis_TABLE_ID"
       locator_strategie: "id"

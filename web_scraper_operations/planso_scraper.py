@@ -60,7 +60,7 @@ class PlanSoMain:
         base_url: str = None,
         config: str = None,
         client: str = "jvg",
-        headless_mode:bool = True
+        headless_mode: bool = True,
     ):
         logger.info(
             "Initialisiere PlanSoMain mit Table-ID: %s und Client: %s", table, client
@@ -127,7 +127,7 @@ class PlanSoMain:
             logging.debug("Warte dass popup verschwindet")
             self._selenium_client.wait_for_overlay_to_disappear(
                 by=self._config.selenium.wait_popup.locator_strategie,
-                selector=self._config.selenium.wait_popup.selector
+                selector=self._config.selenium.wait_popup.selector,
             )
 
             logger.info("Login erfolgreich.")
@@ -153,7 +153,7 @@ class PlanSoMain:
 
     def open_base_url(self):
         self.open_url(url=self._config.base_url)
-    
+
     def open_dialog(self, row_info, target_field="Dokumente"):
         self._config.file_upload.selector = self._config.file_upload.selector.replace(
             "SEARCH_FIELD_STRING", target_field
@@ -192,14 +192,13 @@ class PlanSoMain:
                     break
         except Exception as e:
             logger.error("Trash fehlgeschlagen: %s", str(e))
-    
-#     def get_files_in_dialog(self):
-#         rows = self._selenium_client.wait_unil_presence_located(
-#             by=
-#             selector=
-#         )
-# "ul#images_sortable > li.images_draggable"
 
+    #     def get_files_in_dialog(self):
+    #         rows = self._selenium_client.wait_unil_presence_located(
+    #             by=
+    #             selector=
+    #         )
+    # "ul#images_sortable > li.images_draggable"
 
     def upload_file(self, path, row_info, target_field="Dokumente"):
         logger.info("Starte Datei-Upload für Ziel-Feld: %s", target_field)
@@ -267,7 +266,9 @@ class PlanSoMain:
                         selector=self._config.selenium.upload_dialog_alert.selector,
                     )
 
-                    logger.info(f"Datei erfolgreich hochgeladen, warte auf unsichtbarkeit von {self._config.selenium.wait_for_upload.selector} und klicke dann auf {self._config.selenium.upload_dialog_close.selector}")
+                    logger.info(
+                        f"Datei erfolgreich hochgeladen, warte auf unsichtbarkeit von {self._config.selenium.wait_for_upload.selector} und klicke dann auf {self._config.selenium.upload_dialog_close.selector}"
+                    )
                     time.sleep(1)
                     self._selenium_client.wait_for_invisibility(
                         by=self._config.selenium.wait_for_upload.locator_strategie,
@@ -490,6 +491,11 @@ class PlanSoMain:
     def open_table(self):
         try:
             logger.info("Öffne Tabelle...")
+            self._selenium_client.wait_for_invisibility(
+                by=self._config.selenium.blocks_table_sometimes.locator_strategie,
+                selector=self._config.selenium.blocks_table_sometimes.selector,
+            )
+
             self._selenium_client.click(
                 by=self._config.selenium.table_name.locator_strategie,
                 selector=self._config.selenium.table_name.selector,
@@ -503,6 +509,7 @@ class PlanSoMain:
     def open_orga_list(self):
         try:
             logger.info("Öffne Orga Liste...")
+            time.sleep(1)
             self._selenium_client.click(
                 by=self._config.selenium.orga_list.locator_strategie,
                 selector=self._config.selenium.orga_list.selector,
@@ -510,7 +517,7 @@ class PlanSoMain:
             logger.debug("Warte auf Orga Liste...")
             self._wait_for_orga_list()
         except Exception as e:
-            logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
+            logger.error("Orgalist öffnen fehlgeschlagen: %s", str(e))
             return False
 
     def open_details(self, row_nr):
@@ -628,7 +635,7 @@ class PlanSoMain:
                     self._config.selenium.teile_elements.selector,
                     self._config.selenium.keine_teile.selector,
                 ],
-                return_status=True
+                return_status=True,
             )
             if matched_selector == 1:
                 logger.info("Keine Ersatzteile vorhanden.")
@@ -723,7 +730,7 @@ class PlanSoMain:
                         element=row,
                     ).get_attribute("title")
                 except:
-                    part["status"]=None
+                    part["status"] = None
                 logger.debug("lese bestelldatum")
                 try:
                     part["bestelldatum"] = self._selenium_client.find_element(
@@ -751,16 +758,18 @@ class PlanSoMain:
                     num.append(p["project_num"])
 
             logger.debug(f"ersatzteile gedunden: {parts_data}")
-            
+
             # Gesamtpreis und ersatzteile_summe
             try:
                 table = self._selenium_client.wait_for_all_elements(
                     by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie,
-                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector
-                )[0]  # nur eine Tabelle
+                    selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector,
+                )[
+                    0
+                ]  # nur eine Tabelle
             except Exception as e:
                 logger.warning(f"Gesamtpreis Tabelle konnte nicht gefunden werden: {e}")
-            
+
             gesamtpreis = None
             ersatzteile_summe = None
             for i, auftragsnummer in enumerate(num):
@@ -768,28 +777,36 @@ class PlanSoMain:
                     first_row = self._selenium_client.find_elements(
                         by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
                         selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_tr,
-                        element=table
+                        element=table,
                     )[i]
                     ersatzteile_summe_td = self._selenium_client.find_elements(
                         by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
                         selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_td,
-                        element=first_row
+                        element=first_row,
                     )[1]
-                    ersatzteile_summe = ersatzteile_summe_td.text.replace("€", "").replace(",", ".").strip()
+                    ersatzteile_summe = (
+                        ersatzteile_summe_td.text.replace("€", "")
+                        .replace(",", ".")
+                        .strip()
+                    )
                 except Exception as e:
-                    logger.warning(f"Ersatzteile Summe konnte nicht ausgelesen werden: {e}")
-                parts_data.append({f"{auftragsnummer} ersatzteile_summe": ersatzteile_summe})
+                    logger.warning(
+                        f"Ersatzteile Summe konnte nicht ausgelesen werden: {e}"
+                    )
+                parts_data.append(
+                    {f"{auftragsnummer} ersatzteile_summe": ersatzteile_summe}
+                )
 
             try:
                 last_row = self._selenium_client.find_elements(
                     by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
                     selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_tr,
-                    element=table
+                    element=table,
                 )[-1]
                 gesamtpreis_td = self._selenium_client.find_elements(
                     by=self._config.teile_tabelle.bottom_line_gesamtpreis.locator_strategie_tag,
                     selector=self._config.teile_tabelle.bottom_line_gesamtpreis.selector_td,
-                    element=last_row
+                    element=last_row,
                 )[-1]
                 gesamtpreis = gesamtpreis_td.text.strip()
 
@@ -804,8 +821,8 @@ class PlanSoMain:
         except Exception as e:
             logger.error("Teile Infos auslesen fehlgeschlagen: %s", str(e))
             return []
-    
-    def check_sparepart_boxes(self, positions: str=''):
+
+    def check_sparepart_boxes(self, positions: str = ""):
         try:
             logger.info("checke Ersatzteil check boxen")
             time.sleep(1)
@@ -813,7 +830,7 @@ class PlanSoMain:
             #     by=self._config.selenium.teile_elements.locator_strategie,
             #     selector=self._config.selenium.teile_elements.selector,
             # )
-            pos_array = positions.split(';') if positions else []
+            pos_array = positions.split(";") if positions else []
             logger.debug("wait_for_all_elements")
             rows, matched_selector = self._selenium_client.wait_for_all_elements(
                 by=[
@@ -824,7 +841,7 @@ class PlanSoMain:
                     self._config.selenium.teile_elements.selector,
                     self._config.selenium.keine_teile.selector,
                 ],
-                return_status=True
+                return_status=True,
             )
             if matched_selector == 1:
                 logger.info("Keine Ersatzteile vorhanden.")
@@ -846,7 +863,7 @@ class PlanSoMain:
                         selector=self._config.teile_tabelle.part_nr,
                         element=row,
                     ).get_attribute("data-prtnumber")
-                    
+
                     run = False
                     if pos_array == []:
                         run = True
@@ -856,18 +873,21 @@ class PlanSoMain:
                         run = True
                     if run:
                         checkbox = self._selenium_client.find_element(
-                        by=self._config.teile_tabelle.price_checkbox.locator_strategie,
-                        selector=self._config.teile_tabelle.price_checkbox.selector,
-                        element=row,
+                            by=self._config.teile_tabelle.price_checkbox.locator_strategie,
+                            selector=self._config.teile_tabelle.price_checkbox.selector,
+                            element=row,
                         )
                         time.sleep(0.5)
                         if not checkbox.is_selected():
                             logger.info(f"checking price_checkbox for {part_name}")
 
-                            self._selenium_client.execute_script("""
+                            self._selenium_client.execute_script(
+                                """
                             arguments[0].checked = true;
                             arguments[0].dispatchEvent(new Event('change', { bubbles: true }));
-                            """, checkbox)
+                            """,
+                                checkbox,
+                            )
                             # checkbox.click()
                             checked[part_name] = "checked"
                         else:
@@ -875,12 +895,10 @@ class PlanSoMain:
                 except Exception as e:
                     logger.warning(f"checkbox checken fehlgeschlagen: {e}")
 
-            return checked    
+            return checked
         except Exception as e:
             logger.error("Checkboxen checken fehlgeschlagen: %s", str(e))
             return {"error: Checkboxen checken fehlgeschlagen"}
-
-
 
     def check_for_alert(self):
         try:
@@ -939,7 +957,9 @@ class PlanSoMain:
                 self._config.selenium.load_table_indicator.selector,
             )
         except Exception as e:
-            logger.warning(f"in _wait_for_orga_list ist load_table_indicator nicht sichtbar geworden: {e}")
+            logger.warning(
+                f"in _wait_for_orga_list ist load_table_indicator nicht sichtbar geworden: {e}"
+            )
 
         time.sleep(0.1)
         self._selenium_client.wait_for_invisibility(
