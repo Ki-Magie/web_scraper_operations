@@ -492,10 +492,14 @@ class PlanSoMain:
         try:
             logger.info("Öffne Tabelle...")
             logger.info("wait_for_invisibility")
-            self._selenium_client.wait_for_invisibility(
-                by=self._config.selenium.blocks_table_sometimes.locator_strategie,
-                selector=self._config.selenium.blocks_table_sometimes.selector,
-            )
+            try:
+                self._selenium_client.wait_for_invisibility(
+                    by=self._config.selenium.blocks_table_sometimes.locator_strategie,
+                    selector=self._config.selenium.blocks_table_sometimes.selector,
+                )
+            except Exception as e:
+                logger.warning(e)
+                
             logger.info("klicke jetzt...")
             self._selenium_client.click(
                 by=self._config.selenium.table_name.locator_strategie,
