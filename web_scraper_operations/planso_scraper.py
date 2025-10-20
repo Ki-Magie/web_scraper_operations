@@ -491,17 +491,19 @@ class PlanSoMain:
     def open_table(self):
         try:
             logger.info("Öffne Tabelle...")
+            logger.info("wait_for_invisibility")
             self._selenium_client.wait_for_invisibility(
                 by=self._config.selenium.blocks_table_sometimes.locator_strategie,
                 selector=self._config.selenium.blocks_table_sometimes.selector,
             )
-
+            logger.info("klicke jetzt...")
             self._selenium_client.click(
                 by=self._config.selenium.table_name.locator_strategie,
                 selector=self._config.selenium.table_name.selector,
             )
             # self._wait_for_table()
             time.sleep(1)
+            logger.info("OK")
         except Exception as e:
             logger.error("Tabelle öffnen fehlgeschlagen: %s", str(e))
             return False
@@ -948,6 +950,7 @@ class PlanSoMain:
             self._config.selenium.table_element.locator_strategie,
             self._config.selenium.table_element.selector,
         )
+        logger.info("...Ok")
 
     def _wait_for_orga_list(self):
         logger.debug("Warte auf das Laden der Orga Liste...")
