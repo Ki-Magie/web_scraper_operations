@@ -33,7 +33,7 @@ class SeleniumClient:
         logger.info("------ Initialisiere SeleniumClient '%s', (headless=%s) ------", self._profile_dir, headless)
         
         
-        self._webdriver_wait = 60 # seconds unil timeout
+        self._webdriver_wait = 30 # seconds unil timeout
 
         chrome_options = Options()
         chrome_options.add_argument(f"--user-data-dir={self._profile_dir}")
