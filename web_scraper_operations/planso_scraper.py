@@ -498,8 +498,8 @@ class PlanSoMain:
                     selector=self._config.selenium.blocks_table_sometimes.selector,
                 )
             except Exception as e:
-                logger.warning(e)
-                
+                logger.warning("wait_for_invisibility: %s", str(e))
+
             logger.info("klicke jetzt...")
             self._selenium_client.click(
                 by=self._config.selenium.table_name.locator_strategie,

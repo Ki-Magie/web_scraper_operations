@@ -1,3 +1,4 @@
+import os
 import logging
 import time
 
@@ -65,6 +66,71 @@ def planso_upload_flow(
     except Exception as e:
         logger.exception("Error im planso_upload_flow")
         return {"error": "Error im planso_upload_flow"}
+    finally:
+        try:
+            planso.logout()
+        except Exception:
+            logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+        time.sleep(0.3)
+    
+def planso_bulk_upload(
+    field_name: str,
+    search_field_name: str,
+    search_string: str,
+    path_list: list[str],
+    username: str,
+    password: str,
+    table: str,
+    table_name: str,
+    base_url: str = None,
+    config: str = None,
+    client: str = "jvg",
+    headless_mode:bool = True
+):
+    """
+    Vollständiger Ablauf für den Datei-Upload: Login, Navigation, Dateiupload, Logout.
+    """
+    logger.info("Starte Upload-Flow für Dateien: %s", path_list)
+
+    planso = planso = PlanSoMain(
+        username=username, 
+        password=password, 
+        table=table, 
+        table_name=table_name,
+        base_url=base_url,
+        config=config,
+        client=client,
+        headless_mode=headless_mode
+        )
+
+    try:
+        planso.open_base_url()
+        planso.login()
+        planso.open_navigation()
+        planso.open_table()
+        time.sleep(1)
+
+        logger.debug("Suche Zielzeile für den Upload...")
+
+        # verwendet die Suchfunktion von planso:
+        row_info = planso.find_element_with_search(search_field_name, search_string)
+        logger.debug("row found: '%s'", row_info)
+
+        if row_info:
+            logger.info("Starte Bulk-Upload...")
+            file_status = {}
+            for file_path in path_list:
+                status = planso.upload_file(file_path, row_info, field_name)
+                file_status[os.path.basename(file_path)] = status
+                logger.info("'%s' return of status '%s'", os.path.basename(file_path), status)
+                time.sleep(1)
+            logger.debug("Schließe Upload-Dialog...")
+        else:
+            file_status = f"{search_string} ist nicht im Feld {search_field_name}"
+        return {"message": file_status}
+    except Exception as e:
+        logger.exception("Error im planso_bulk_upload")
+        return {"error": "Error im planso_bulk_upload"}
     finally:
         try:
             planso.logout()
