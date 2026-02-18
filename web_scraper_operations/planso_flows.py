@@ -43,11 +43,10 @@ def planso_upload_flow(
         response = planso.login()
         if response == False:
             try:
-                planso.logout()
-                return
+                return {"error": "Login Fehlgeschlagen"}
             except Exception:
                 logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
-                return
+                return {"error": "Login Fehlgeschlagen"}
         planso.open_navigation()
         planso.open_table()
         time.sleep(1)
@@ -115,8 +114,7 @@ def planso_bulk_upload(
         response = planso.login()
         if response == False:
             try:
-                planso.logout()
-                return
+                return {"error": "Login Fehlgeschlagen"}
             except Exception:
                 logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
                 return
@@ -184,8 +182,7 @@ def planso_invoice_positions_flow(
         response = planso.login()
         if response == False:
             try:
-                planso.logout()
-                return
+                return {"error": "Login Fehlgeschlagen"}
             except Exception:
                 logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
                 return
@@ -244,8 +241,7 @@ def planso_spareparts_ok(
         response = planso.login()
         if response == False:
             try:
-                planso.logout()
-                return
+                return {"error": "Login Fehlgeschlagen"}
             except Exception:
                 logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
                 return
@@ -305,8 +301,7 @@ def planso_trash_documents(
         response = planso.login()
         if response == False:
             try:
-                planso.logout()
-                return
+                return {"error": "Login Fehlgeschlagen"}
             except Exception:
                 logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
                 return

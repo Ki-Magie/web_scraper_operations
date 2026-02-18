@@ -111,9 +111,10 @@ class PlanSoMain:
             self._selenium_client.click(
                 self._config.selenium.login_submit_button.locator_strategie,
                 self._config.selenium.login_submit_button.selector,
+                wait=True
             )
 
-            logger.debug("Warte auf Navigationselement (Login-Bestätigung)...")
+            logger.info("Warte auf Navigationselement (Login-Bestätigung)...")
             self._selenium_client.wait_for_element(
                 self._config.selenium.navigation.locator_strategie,
                 self._config.selenium.navigation.selector,
@@ -125,7 +126,7 @@ class PlanSoMain:
             )
 
             time.sleep(1)
-            logging.debug("Warte dass popup verschwindet")
+            logging.info("Warte dass intro popup verschwindet")
             self._selenium_client.wait_for_overlay_to_disappear(
                 by=self._config.selenium.wait_popup.locator_strategie,
                 selector=self._config.selenium.wait_popup.selector,

@@ -70,7 +70,7 @@ class SeleniumClient:
         if send_return:
             field.send_keys(Keys.RETURN)
 
-    def click(self, by, selector, element=None):
+    def click(self, by, selector, element=None, wait=False):
         logger.debug("Klicke auf Element [%s=%s]", by, selector)
 
         if element:
@@ -84,6 +84,8 @@ class SeleniumClient:
             button.click()
         except Exception:
             self.driver.execute_script("arguments[0].click();", button)
+        if wait:
+            self.wait.until(EC.staleness_of(button))
 
     def safe_click(self, by, selector, timeout=15):
         end_time = time.time() + timeout
