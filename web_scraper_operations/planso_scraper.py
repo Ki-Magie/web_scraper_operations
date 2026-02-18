@@ -115,15 +115,15 @@ class PlanSoMain:
             )
 
             logger.info("Warte auf Navigationselement (Login-Bestätigung)...")
-            self._selenium_client.wait_for_element(
-                self._config.selenium.navigation.locator_strategie,
-                self._config.selenium.navigation.selector,
-            )
+            # self._selenium_client.wait_for_element(
+            #     self._config.selenium.navigation.locator_strategie,
+            #     self._config.selenium.navigation.selector,
+            # )
 
-            self._selenium_client.wait_for_invisibility(
-                self._config.selenium.preload_video.locator_strategie,
-                self._config.selenium.preload_video.selector,
-            )
+            # self._selenium_client.wait_for_invisibility(
+            #     self._config.selenium.preload_video.locator_strategie,
+            #     self._config.selenium.preload_video.selector,
+            # )
 
             time.sleep(1)
             logging.info("Warte dass intro popup verschwindet")
