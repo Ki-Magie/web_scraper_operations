@@ -33,6 +33,7 @@ def download_files_from_link(user_name, password, path_link):
             logger.info("login bei '%s' erfolgreich", login_url)
         else:
             logger.info("Login fehlgeschlagen: '%s'", r.status_code)
+            return False
 
         # Datei runterladen
         r = s.get(download_url)
@@ -480,6 +481,7 @@ class PlanSoMain:
     def open_schnellzugriff(self):
         try:
             logger.info("Öffne Schnellzugriff...")
+            time.sleep(1)
             self._selenium_client.click(
                 by=self._config.selenium.schnellzugriff.locator_strategie,
                 selector=self._config.selenium.schnellzugriff.selector,
@@ -515,11 +517,17 @@ class PlanSoMain:
     def open_orga_list(self):
         try:
             logger.info("Öffne Orga Liste...")
-            time.sleep(1)
-            self._selenium_client.click(
-                by=self._config.selenium.orga_list.locator_strategie,
-                selector=self._config.selenium.orga_list.selector,
+            time.sleep(10)
+            button = self._selenium_client.wait_for_element(
+                by="xpath",
+                selector="//button[@data-id='30584' and not(contains(@style,'display: none'))]"
             )
+            self._selenium_client.driver.execute_script("arguments[0].click();", button)
+            # self._selenium_client.click(
+            #     by=self._config.selenium.orga_list.locator_strategie,
+            #     selector=self._config.selenium.orga_list.selector,
+            #     element=button
+            # )
             logger.debug("Warte auf Orga Liste...")
             self._wait_for_orga_list()
         except Exception as e:
@@ -957,7 +965,7 @@ class PlanSoMain:
         logger.info("...Ok")
 
     def _wait_for_orga_list(self):
-        logger.debug("Warte auf das Laden der Orga Liste...")
+        logger.info("Warte auf das Laden der Orga Liste...")
         try:
             self._selenium_client.wait_for_visibility(
                 self._config.selenium.load_table_indicator.locator_strategie,

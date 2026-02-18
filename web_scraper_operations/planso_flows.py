@@ -40,7 +40,14 @@ def planso_upload_flow(
 
     try:
         planso.open_base_url()
-        planso.login()
+        response = planso.login()
+        if response == False:
+            try:
+                planso.logout()
+                return
+            except Exception:
+                logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+                return
         planso.open_navigation()
         planso.open_table()
         time.sleep(1)
@@ -105,7 +112,14 @@ def planso_bulk_upload(
 
     try:
         planso.open_base_url()
-        planso.login()
+        response = planso.login()
+        if response == False:
+            try:
+                planso.logout()
+                return
+            except Exception:
+                logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+                return
         planso.open_navigation()
         planso.open_table()
         time.sleep(1)
@@ -167,7 +181,14 @@ def planso_invoice_positions_flow(
         )
     try:
         planso.open_base_url()
-        planso.login()
+        response = planso.login()
+        if response == False:
+            try:
+                planso.logout()
+                return
+            except Exception:
+                logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+                return
         planso.open_schnellzugriff()
         planso.open_orga_list()
         time.sleep(1)
@@ -220,7 +241,14 @@ def planso_spareparts_ok(
         )
     try:
         planso.open_base_url()
-        planso.login()
+        response = planso.login()
+        if response == False:
+            try:
+                planso.logout()
+                return
+            except Exception:
+                logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+                return
         planso.open_schnellzugriff()
         planso.open_orga_list()
         time.sleep(1)
@@ -274,7 +302,14 @@ def planso_trash_documents(
         )
     try:
         planso.open_base_url()
-        planso.login()
+        response = planso.login()
+        if response == False:
+            try:
+                planso.logout()
+                return
+            except Exception:
+                logger.warning("Logout fehlgeschlagen oder planso nicht initialisiert")
+                return
         planso.open_navigation()
         planso.open_table()
         time.sleep(1)

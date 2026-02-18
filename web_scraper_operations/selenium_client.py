@@ -72,17 +72,18 @@ class SeleniumClient:
 
     def click(self, by, selector, element=None):
         logger.debug("Klicke auf Element [%s=%s]", by, selector)
+
         if element:
-            details_button = element.find_element(
-                STRATEGY_MAP[by],
-                selector
+            button = element.find_element(STRATEGY_MAP[by], selector)
+        else:
+            button = self.wait.until(
+                EC.element_to_be_clickable((STRATEGY_MAP[by], selector))
             )
-            details_button.click()
-            return
-        button = self.wait.until(
-            EC.element_to_be_clickable((STRATEGY_MAP[by], selector))
-        )
-        button.click()
+
+        try:
+            button.click()
+        except Exception:
+            self.driver.execute_script("arguments[0].click();", button)
 
     def safe_click(self, by, selector, timeout=15):
         end_time = time.time() + timeout
@@ -164,7 +165,7 @@ class SeleniumClient:
 
     def wait_for_element(self, by, selector):
         logger.debug("Warte auf Element [%s=%s]", by, selector)
-        self.wait.until(EC.presence_of_element_located((STRATEGY_MAP[by], selector)))
+        return self.wait.until(EC.presence_of_element_located((STRATEGY_MAP[by], selector)))
 
     def wait_for_visibility(self, by, selector):
         logger.debug("Warte auf Sichtbarkeit von [%s=%s]", by, selector)
