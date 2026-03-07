@@ -518,10 +518,10 @@ class PlanSoMain:
     def open_orga_list(self):
         try:
             logger.info("Öffne Orga Liste...")
-            time.sleep(10)
+            time.sleep(5)
             button = self._selenium_client.wait_for_element(
-                by="xpath",
-                selector="//button[@data-id='30584' and not(contains(@style,'display: none'))]"
+                by=self._config.selenium.orga_list.locator_strategie,
+                selector=self._config.selenium.orga_list.selector
             )
             self._selenium_client.driver.execute_script("arguments[0].click();", button)
             # self._selenium_client.click(
@@ -530,7 +530,8 @@ class PlanSoMain:
             #     element=button
             # )
             logger.debug("Warte auf Orga Liste...")
-            self._wait_for_orga_list()
+            # self._wait_for_orga_list()
+            time.sleep(3)
         except Exception as e:
             logger.error("Orgalist öffnen fehlgeschlagen: %s", str(e))
             return False

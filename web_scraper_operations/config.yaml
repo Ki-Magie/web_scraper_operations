@@ -39,8 +39,8 @@ jvg:
       selector: "//h3[a[contains(text(),'Schnellzugriff')]]"
       locator_strategie: "xpath"
     orga_list:
-      selector: "button[data-id='ORGA_LIST_ID']"
-      locator_strategie: "css"
+      selector: "//button[@data-id='ORGA_LIST_ID' and not(contains(@style,'display: none'))]"
+      locator_strategie: "xpath"
     table_name:
       selector: 'a[title="TABLE_NAME"]'
       locator_strategie: "css"
