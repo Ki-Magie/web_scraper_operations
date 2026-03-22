@@ -82,7 +82,7 @@ jvg:
       selector: ".//input[@type='file']"
       locator_strategie: "xpath"
     upload_dialog_close:
-      selector: "//button[.//span[contains(@class, 'fa-times-circle')] and .//span[text()='Schließen']]"
+      selector: "//button[.//span[contains(@class, 'fa-times-circle')] and .//span[text()='Schliessen']]"
       locator_strategie: "xpath"
     upload_dialog_alert:
       selector: "ui-pnotify-text"

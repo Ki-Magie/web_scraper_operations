@@ -272,15 +272,21 @@ class PlanSoMain:
                         f"Datei erfolgreich hochgeladen, warte auf unsichtbarkeit von {self._config.selenium.wait_for_upload.selector} und klicke dann auf {self._config.selenium.upload_dialog_close.selector}"
                     )
                     time.sleep(1)
-                    self._selenium_client.wait_for_invisibility(
-                        by=self._config.selenium.wait_for_upload.locator_strategie,
-                        selector=self._config.selenium.wait_for_upload.selector,
-                    )
+                    try:
+                        self._selenium_client.wait_for_invisibility(
+                            by=self._config.selenium.wait_for_upload.locator_strategie,
+                            selector=self._config.selenium.wait_for_upload.selector,
+                        )
+                    except:
+                        logger.info(f"darauf warten hat nicht geklappt: {self._config.selenium.wait_for_upload.selector}")
                     time.sleep(1)
-                    self._selenium_client.safe_click(
-                        by=self._config.selenium.upload_dialog_close.locator_strategie,
-                        selector=self._config.selenium.upload_dialog_close.selector,
-                    )
+                    try:
+                        self._selenium_client.safe_click(
+                            by=self._config.selenium.upload_dialog_close.locator_strategie,
+                            selector=self._config.selenium.upload_dialog_close.selector,
+                        )
+                    except:
+                        logger.info(f"safe click hat nicht geklappt: {self._config.selenium.upload_dialog_close.selector}")
                     return "File Upload erfolgreich"
         except Exception as e:
             logger.error("Upload fehlgeschlagen: %s", str(e))
